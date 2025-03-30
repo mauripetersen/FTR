@@ -1,16 +1,17 @@
-# FTR
+# F.T.R. - _Ferri Tractus Ratio_
 
-### Ferri Tractus Ratio
-
-*created by: Maurício Petersen Pithon*
+*by: Maurício Petersen Pithon*
 
 ----
 
-## Description
+## Descrição
 
-Library in [Python](https://www.python.org) developed to automate tasks with TQS for Procalk company.
+**"Cálculo da Tração do Ferro"**, do Latim _**"Ferri Tractus Ratio"**_, ou apenas **FTR**, é uma Ferramenta Computacional
+desenvolvida em [Python](https://www.python.org) que auxilia o Engenheiro Civil no cálculo de vigas contínuas hiperestáticas protendidas.
 
-## Installation
+O FTR foi desenvolvido como Trabalho de Conclusão de Curso do aluno Maurício Petersen Pithon, em 2025/1
+
+## Instalação
 
 > **WARNING**: The TQSPythonInterface library must be installed in order to pck_tqs work appropriately.
 
