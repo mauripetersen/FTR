@@ -1,16 +1,8 @@
-from modules.user_data import obter_dados_viga
-from modules.internal_forces import calculate_reactions, calculate_moments
-from modules.otimization_AI import otimizar_posicionamento
+import tkinter as tk
 
-# Obter dados do usuário
-viga = obter_dados_viga()
+from gui.splash import SplashScreen
 
-# Calcular as reações e momentos
-reactions = calculate_reactions(viga)
-moments = calculate_moments(viga)
-
-# Otimizar (se implementado)
-otimizar_posicionamento(viga)
-
-# Mostrar resultados
-print(reactions, moments)
+if __name__ == "__main__":
+    root = tk.Tk()
+    SplashScreen(root)
+    root.mainloop()
