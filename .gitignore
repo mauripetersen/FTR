@@ -1,0 +1,11 @@
+# Virtual Environment:
+.venv/
+
+# IDE Configurations:
+/.idea/
+
+# Cache files:
+__pycache__/
+
+# pyenv:
+# .python-version			# just for now I'll push it. (maybe)
