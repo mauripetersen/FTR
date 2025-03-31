@@ -1,0 +1,27 @@
+{
+	"DarkMode": {
+		"background_Main": "#242424",
+		"background_CAD": "#16161a",
+		"headline": "#fffffe",
+		"paragraph": "#94a1b2",
+		"Entry": {
+			"fore": "#fffffe",
+			"hover": "#cccccb",
+			"border": "#010101",
+			"text": "#000000"
+		},
+		"Button": {
+			"fore": "#7f5af0",
+			"hover": "#5e43b3",
+			"border": "#433080",
+			"text": "#fffffe"
+		},
+		"Illustration": {
+			"stroke": "#010101",
+			"main": "#fffffe",
+			"highlight": "#7f5af0",
+			"secondary": "#72757e",
+			"tertiary": "#2cb67d"
+		}
+	}
+}

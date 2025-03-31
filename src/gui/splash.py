@@ -1,37 +1,42 @@
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
+import customtkinter as ctk
+from PIL import Image
+import os
 
+from config import FTR_NAME, assets_dir
 from gui.style import *
-from gui.menu import MainMenu
+from gui.CAD import CADInterface
 
 __all__ = ["SplashScreen"]
 
 
 class SplashScreen:
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: ctk.CTk):
         self.root = root
-        configure_app(self.root, 500, 300)
-        self.root.overrideredirect(True)
+        configure_root(self.root, maximized=False, win_size=(800, 494), flat=True)
 
         # ===== Frame superior com imagem e nome lado a lado =====
-        self.top_frame = tk.Frame(root, bg=Palette.background)
+        self.top_frame = ctk.CTkFrame(root, bg_color="red", fg_color="blue", corner_radius=30)
         self.top_frame.pack(expand=True)
 
         # ===== Logo =====
-        self.logo_img = self.load_logo("c:/GitHub/mauripetersen/FTR/assets/images/logo.png")
-        if self.logo_img:
-            self.logo_label = tk.Label(self.top_frame, image=self.logo_img, bg=Palette.background)
-            self.logo_label.grid(row=0, column=0, padx=(20, 10))
+        logo = self.load_logo(os.path.join(assets_dir, "images/logo.png"))
+        if logo:
+            self.LblLogo = ctk.CTkLabel(self.top_frame, image=logo, text="", bg_color=Palette.background)
+            self.LblLogo.grid(row=0, column=0, padx=(0, 0))
 
         # ===== Nome do programa =====
-        self.label = tk.Label(self.top_frame, text="FTR", font=("Segoe UI", 24, "bold"), bg=Palette.background, fg="white")
-        self.label.grid(row=0, column=1, padx=(10, 20))
+        self.LblName1 = ctk.CTkLabel(self.top_frame, text=FTR_NAME.split(" - ")[0], font=("Cambria", 64, "bold"),
+                                     text_color=Palette.headline, bg_color=Palette.background)
+        self.LblName1.grid(row=0, column=1, padx=(0, 0))
+
+        self.LblName2 = ctk.CTkLabel(self.top_frame, text=FTR_NAME.split(" - ")[1], font=("Cambria", 32, "bold"),
+                                     text_color=Palette.headline, bg_color=Palette.background)
+        self.LblName2.grid(row=0, column=2, padx=(0, 0))
 
         # ===== Barra de progresso =====
-        self.progress = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate")
-        self.progress.pack(pady=(0, 30))
-        self.progress["maximum"] = 100
+        self.PrgLoad = ctk.CTkProgressBar(self.root, width=400)
+        self.PrgLoad.pack(pady=(0, 30))
+        self.PrgLoad.set(0)
         self.progress_val = 0
 
         self.load_progress()
@@ -40,21 +45,22 @@ class SplashScreen:
     def load_logo(path):
         try:
             img = Image.open(path)
-            img = img.resize((150, 150), Image.Resampling.LANCZOS)
-            return ImageTk.PhotoImage(img)
+            return ctk.CTkImage(dark_image=img, light_image=img, size=(150, 150))
         except Exception as e:
             print(f"Erro ao carregar imagem: {e}")
             return None
 
     def load_progress(self):
+        # flerken 1:
+        # self.start_main_menu()
         if self.progress_val < 100:
-            self.progress_val += 5
-            self.progress["value"] = self.progress_val
-            self.root.after(80, self.load_progress)
+            self.progress_val += 1
+            self.PrgLoad.set(self.progress_val / 100)
+            self.root.after(50, self.load_progress)
         else:
             self.start_main_menu()
 
     def start_main_menu(self):
         for widget in self.root.winfo_children():
             widget.destroy()
-        MainMenu(self.root)
+        CADInterface(self.root)

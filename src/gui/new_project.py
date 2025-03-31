@@ -62,63 +62,10 @@ class VigaApp:
         # Em seguida, você pode usar esses dados em funções de cálculos que estarão no módulo `calculos.py`.
 
 
-class CADInterface:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Viga Interativa")
-
-        # Canvas para desenhar
-        self.canvas = tk.Canvas(self.root, width=600, height=400)
-        self.canvas.pack()
-
-        # Variáveis para armazenar as coordenadas
-        self.start_x = None
-        self.start_y = None
-
-        # Adicionar eventos de clique e arrasto
-        self.canvas.bind("<Button-1>", self.on_click)
-        self.canvas.bind("<B1-Motion>", self.on_drag)
-
-        # Modo de adicionar carga
-        self.adding_load = False
-        self.canvas.bind("<Button-3>", self.toggle_add_load)
-
-    def on_click(self, event):
-        if not self.start_x and not self.start_y:
-            # Início do desenho da viga
-            self.start_x = event.x
-            self.start_y = event.y
-        else:
-            # Desenha a viga
-            self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="black")
-            self.start_x, self.start_y = None, None
-
-    def on_drag(self, event):
-        if self.start_x and self.start_y:
-            # Atualiza o desenho da viga enquanto o mouse é movido
-            self.canvas.delete("temp_line")  # Remove a linha temporária anterior
-            self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="black",
-                                    tags="temp_line")
-
-    def toggle_add_load(self, event):
-        # Alterna o modo de adicionar cargas
-        self.adding_load = not self.adding_load
-        if self.adding_load:
-            print("Modo de adicionar carga ativado")
-        else:
-            print("Modo de adicionar carga desativado")
-
-    def add_load(self, event):
-        if self.adding_load:
-            # Adiciona uma carga (por exemplo, um círculo)
-            self.canvas.create_oval(event.x - 5, event.y - 5, event.x + 5, event.y + 5, fill="red", tags="load")
-
-
 # Criar a janela principal
 root = tk.Tk()
 root.configure(bg=Palette.background)
 
-# app = CADInterface(root)
 app = VigaApp(root)
 
 root.mainloop()

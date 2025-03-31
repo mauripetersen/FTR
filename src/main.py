@@ -1,8 +1,9 @@
-import tkinter as tk
+import customtkinter as ctk
 
 from gui.splash import SplashScreen
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    ctk.set_appearance_mode("Dark")
+    root = ctk.CTk()
     SplashScreen(root)
     root.mainloop()
