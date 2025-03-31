@@ -1,0 +1,28 @@
+{
+	"background": "#242424",
+	"headline": "#fffffe",
+	"paragraph": "#94a1b2",
+	"CAD": {
+		"background": "#16161a",
+		"lines": "#ffffff"
+	},
+	"Button": {
+		"fore": "#7f5af0",
+		"hover": "#5e43b3",
+		"border": "#433080",
+		"text": "#fffffe"
+	},
+	"Entry": {
+		"fore": "#fffffe",
+		"hover": "#cccccb",
+		"border": "#010101",
+		"text": "#000000"
+	},
+	"Illustration": {
+		"stroke": "#010101",
+		"main": "#fffffe",
+		"highlight": "#7f5af0",
+		"secondary": "#72757e",
+		"tertiary": "#2cb67d"
+	}
+}

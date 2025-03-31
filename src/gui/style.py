@@ -3,7 +3,7 @@ import customtkinter as ctk
 import json
 import os
 
-from config import *
+from config import FTR_NAME, themes_dir
 
 __all__ = ["Palette", "FtrLabel", "FtrEntry", "FtrButton", "create_dropdown_menu", "configure_root"]
 
