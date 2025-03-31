@@ -10,22 +10,23 @@ def main() -> None:
 
     result = extract_key_values(data)
 
-    wi = 400
-    he = 1000
+    wi = 800
+    he = 2000
     n = len(result)
     dx = wi / 2
-    dy = int(he / n)
+    dy = he / n
 
     img = Image.new("RGB", (wi, he), color="#ffffff")
     draw = ImageDraw.Draw(img)
-    font = ImageFont.load_default()
+    # font = ImageFont.load_default()
+    font = ImageFont.truetype("cambria", 24)
 
     for i, (k, v) in enumerate(result):
         draw.rectangle([wi / 2, dy * i, wi, dy * (i + 1)], fill=f"#{v[1:7]}", outline="#000000")
-        draw.text((50, dy * (i + .45)), k, fill="#000000", font=font)
+        draw.text((30, dy * (i + .45)), k, fill="#000000", font=font)
 
     img.show()
-    # img.save("palette.png")
+    img.save("palettes.png")
 
 
 def extract_key_values(d, parent_key='', result=None):
