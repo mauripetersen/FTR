@@ -1,9 +1,10 @@
 import customtkinter as ctk
+import tkinter as tk
 from PIL import Image, ImageTk
 import os
 
-from config import FTR_NAME, assets_dir
-from gui.style import *
+from config import FTR_NAME_1, FTR_NAME_2, assets_dir
+from gui.style import Theme, configure_root
 from gui.interface import App
 
 __all__ = ["SplashScreen"]
@@ -12,52 +13,45 @@ __all__ = ["SplashScreen"]
 class SplashScreen(ctk.CTk):
     def __init__(self):
         super().__init__()
-        configure_root(self, maximized=False, win_size=(800, 494), flat=True)
+        self.size = (800, 500)
+        configure_root(self, maximized=False, win_size=self.size, flat=True)
 
-        # ===== Frame superior com imagem e nome lado a lado =====
-        self.top_frame = ctk.CTkFrame(self, bg_color=Theme.background, fg_color=Theme.background, corner_radius=30)
-        self.top_frame.pack(expand=True)
+        self.Canvas = tk.Canvas(self, bg=Theme.background, highlightthickness=0)
+        self.Canvas.pack(fill="both", expand=True)
 
-        # ===== Logo =====
-        logo = self.load_logo(os.path.abspath(os.path.join(assets_dir, "images/logo.png")))
-        if logo:
-            self.LblLogo = ctk.CTkLabel(self.top_frame, image=logo, text="", fg_color="transparent", bg_color="red")
-            self.LblLogo.grid(row=0, column=0, padx=(0, 0))
+        try:
+            logo_path = os.path.abspath(os.path.join(assets_dir, "images/logo_splash_gray.png"))
+            logo_img = Image.open(logo_path).convert("RGBA")
+            img = logo_img.resize(size=(350, 350))
+            logo_imgTk = ImageTk.PhotoImage(img)
+            self.Canvas.create_image(240, self.size[1] / 2 - 30, image=logo_imgTk)
+            self.logo_img = logo_imgTk
+        except Exception as e:
+            print(f"Erro ao carregar imagem: {e}")
 
-        # ===== Nome do programa =====
-        self.LblName1 = ctk.CTkLabel(self.top_frame, text=FTR_NAME.split(" - ")[0], font=("Cambria", 64, "bold"),
-                                     text_color=Theme.headline, bg_color=Theme.background)
-        self.LblName1.grid(row=0, column=1, padx=(0, 0))
+        self.Canvas.create_text(420, 210 - 20, text=FTR_NAME_1, font=("Cambria", 62, "bold"), anchor="w",
+                                fill=Theme.headline)
+        self.Canvas.create_text(420, 280 - 25, text=FTR_NAME_2, font=("Cambria", 24, "bold"), anchor="w",
+                                fill=Theme.paragraph)
 
-        self.LblName2 = ctk.CTkLabel(self.top_frame, text=FTR_NAME.split(" - ")[1], font=("Cambria", 32, "bold"),
-                                     text_color=Theme.headline, bg_color=Theme.background)
-        self.LblName2.grid(row=0, column=2, padx=(0, 0))
+        self.Canvas.create_text(self.size[0] - 15, self.size[1] - 25, text="created by: Maurício Petersen Pithon",
+                                font=("Cambria", 12, "italic"), fill=Theme.Illustration.highlight, anchor="e")
 
-        # ===== Barra de progresso =====
-        self.PrgLoad = ctk.CTkProgressBar(self, width=400)
-        self.PrgLoad.pack(pady=(0, 30))
+        self.PrgLoad = ctk.CTkProgressBar(self, width=self.size[0], height=10,
+                                          progress_color=Theme.Illustration.tertiary, corner_radius=0)
+        self.PrgLoad.place(relx=0.5, y=self.size[1] - 55, anchor="center")
         self.PrgLoad.set(0)
         self.progress_val = 0
 
         self.progress_after_id = None
-        self.load_progress()
-
-    @staticmethod
-    def load_logo(path):
-        try:
-            img_pil = Image.open(path)
-            img_pil = img_pil.resize((300, 300), Image.LANCZOS)
-            img_tk = ImageTk.PhotoImage(img_pil)
-            return img_tk
-        except Exception as e:
-            print(f"Erro ao carregar imagem: {e}")
-            return None
+        # self.load_progress()
+        self.start_main_menu()
 
     def load_progress(self):
         if self.progress_val < 100:
             self.progress_val += 1
             self.PrgLoad.set(self.progress_val / 100)
-            self.progress_after_id = self.after(1000, self.load_progress)
+            self.progress_after_id = self.after(20, self.load_progress)
         else:
             self.start_main_menu()
 

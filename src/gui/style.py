@@ -3,7 +3,7 @@ import customtkinter as ctk
 import json
 import os
 
-from config import FTR_NAME, themes_dir
+from config import FTR_NAME_0, themes_dir
 
 __all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "create_dropdown_menu", "configure_root"]
 
@@ -53,8 +53,17 @@ class DcTheme:
 
 theme_path = os.path.join(themes_dir, "DarkMode.json")
 with open(theme_path, 'r', encoding='utf-8') as f:
-    data_dict = json.load(f)
-Theme = DcTheme(**data_dict)
+    raw = json.load(f)
+
+Theme = DcTheme(
+    background=raw["background"],
+    headline=raw["headline"],
+    paragraph=raw["paragraph"],
+    CAD=DcCAD(**raw["CAD"]),
+    Button=DcButton(**raw["Button"]),
+    Entry=DcEntry(**raw["Entry"]),
+    Illustration=DcIllustration(**raw["Illustration"])
+)
 
 
 # endregion
@@ -135,7 +144,7 @@ def create_dropdown_menu(master_button, root_window, options, palette):
     return toggle
 
 
-def configure_root(root: ctk.CTk, title=FTR_NAME, fg_color=Theme.background, flat=False,
+def configure_root(root: ctk.CTk, title=FTR_NAME_0, fg_color=Theme.background, flat=False,
                    maximized=True, win_size=(1200, 800), min_size=(800, 600), max_size=(1920, 1080)):
     root.title(title)
     root.configure(fg_color=fg_color)

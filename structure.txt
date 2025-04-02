@@ -1,0 +1,17 @@
+src/
+	AI/
+	beam/
+	gui/
+		interface/
+			__init__.py
+			app_main.py
+			cad.py
+			ribbon.py
+			sidebar.py
+			statusbar.py
+			tab.py
+		__init__.py
+		splash.py
+		style.py
+	config.py
+	main.py
