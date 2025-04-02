@@ -3,14 +3,23 @@ import customtkinter as ctk
 from config import *
 from gui.style import Theme, configure_root
 
-__all__ = ["CADInterface"]
+__all__ = ["CAD"]
 
 
 class CAD(ctk.CTkFrame):
     def __init__(self, master):
-        super().__init__(master, fg_color=Theme.background)
+        super().__init__(master, fg_color=Theme.CAD.background, corner_radius=0)
         lbl = ctk.CTkLabel(self, text="Área Gráfica (CAD)", text_color=Theme.headline)
         lbl.pack(padx=20, pady=20)
+
+        self.bind("<MouseWheel>", perform_zoom)
+
+
+def perform_zoom(event):
+    if event.delta > 0:
+        ...
+    elif event.delta < 0:
+        ...
 
 
 class CADInterface:

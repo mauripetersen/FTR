@@ -6,5 +6,5 @@ __all__ = ["create_statusbar"]
 
 
 def create_statusbar(master, app):
-    lbl = ctk.CTkLabel(master, text="Status: Pronto", text_color=Theme.paragraph)
+    lbl = ctk.CTkLabel(master, text="Status: Pronto", text_color=Theme.headline)
     lbl.pack(side="left", padx=10)

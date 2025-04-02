@@ -1,10 +1,12 @@
 {
 	"background": "#242424",
+	"dark_1": "#101214",
+	"dark_2": "#21252b",
 	"headline": "#ffffff",
 	"paragraph": "#94a1b2",
 	"CAD": {
 		"background": "#16161a",
-		"lines": "#ffffff"
+		"lines": "#94a1b2"
 	},
 	"Button": {
 		"fore": "#7f5af0",

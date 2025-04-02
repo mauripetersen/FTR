@@ -3,20 +3,20 @@ import customtkinter as ctk
 import json
 import os
 
-from config import FTR_NAME_0, themes_dir
+from config import FTR_NAME_0, assets_dir, themes_dir
 
-__all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "create_dropdown_menu", "configure_root"]
+__all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "configure_root"]
 
 
 # region "Theme"
 @dataclass
-class DcCAD:
+class ThmCAD:
     background: str
     lines: str
 
 
 @dataclass
-class DcButton:
+class ThmButton:
     fore: str
     hover: str
     border: str
@@ -24,7 +24,7 @@ class DcButton:
 
 
 @dataclass
-class DcEntry:
+class ThmEntry:
     fore: str
     hover: str
     border: str
@@ -32,7 +32,7 @@ class DcEntry:
 
 
 @dataclass
-class DcIllustration:
+class ThmIllustration:
     stroke: str
     main: str
     highlight: str
@@ -41,28 +41,32 @@ class DcIllustration:
 
 
 @dataclass
-class DcTheme:
+class ThmTheme:
     background: str
+    dark_1: str
+    dark_2: str
     headline: str
     paragraph: str
-    CAD: DcCAD
-    Button: DcButton
-    Entry: DcEntry
-    Illustration: DcIllustration
+    CAD: ThmCAD
+    Button: ThmButton
+    Entry: ThmEntry
+    Illustration: ThmIllustration
 
 
 theme_path = os.path.join(themes_dir, "DarkMode.json")
 with open(theme_path, 'r', encoding='utf-8') as f:
     raw = json.load(f)
 
-Theme = DcTheme(
+Theme = ThmTheme(
     background=raw["background"],
+    dark_1=raw["dark_1"],
+    dark_2=raw["dark_2"],
     headline=raw["headline"],
     paragraph=raw["paragraph"],
-    CAD=DcCAD(**raw["CAD"]),
-    Button=DcButton(**raw["Button"]),
-    Entry=DcEntry(**raw["Entry"]),
-    Illustration=DcIllustration(**raw["Illustration"])
+    CAD=ThmCAD(**raw["CAD"]),
+    Button=ThmButton(**raw["Button"]),
+    Entry=ThmEntry(**raw["Entry"]),
+    Illustration=ThmIllustration(**raw["Illustration"])
 )
 
 
@@ -107,48 +111,17 @@ def FtrButton(master, text, command=None, font_name="Cambria", font_height=14):
     )
 
 
-def create_dropdown_menu(master_button, root_window, options, palette):
-    """
-    Cria um menu suspenso customizado abaixo de um botão.
-
-    Parâmetros:
-        master_button: o CTkButton que dispara o menu
-        root_window: janela principal (normalmente o root)
-        options: lista de tuplas (texto, função_callback)
-        palette: dicionário com cores (ex: {"bg": "#1e1e2f", "hover": "#3d424b", "text": "#ffffff"})
-    """
-    menu_frame = ctk.CTkFrame(root_window, fg_color=palette["bg"], corner_radius=0)
-    menu_frame.place_forget()
-
-    for text, callback in options:
-        if text == "---":
-            ctk.CTkLabel(menu_frame, text="─" * 30, text_color=palette["text"]).pack(pady=2)
-        else:
-            btn = ctk.CTkButton(menu_frame, text=text,
-                                command=callback,
-                                fg_color="transparent",
-                                hover_color=palette["hover"],
-                                text_color=palette["text"],
-                                font=ctk.CTkFont(size=13),
-                                anchor="w")
-            btn.pack(fill="x", padx=10, pady=2)
-
-    def toggle():
-        if menu_frame.winfo_ismapped():
-            menu_frame.place_forget()
-        else:
-            x = master_button.winfo_rootx() - root_window.winfo_rootx()
-            y = master_button.winfo_rooty() - root_window.winfo_rooty() + master_button.winfo_height()
-            menu_frame.place(x=x, y=y)
-
-    return toggle
-
-
 def configure_root(root: ctk.CTk, title=FTR_NAME_0, fg_color=Theme.background, flat=False,
                    maximized=True, win_size=(1200, 800), min_size=(800, 600), max_size=(1920, 1080)):
     root.title(title)
     root.configure(fg_color=fg_color)
     root.overrideredirect(flat)  # flat UI
+
+    try:
+        logo_path = os.path.abspath(os.path.join(assets_dir, "icon/icon_x256.ico"))
+        root.iconbitmap(logo_path)
+    except Exception as e:
+        print(f"Error: {e}")
 
     if maximized:
         root.minsize(*min_size)
