@@ -1,51 +1,22 @@
 import customtkinter as ctk
 
 from config import *
-from gui.style import *
+from gui.style import Theme, configure_root
 
 __all__ = ["CADInterface"]
 
 
+class CAD(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master, fg_color=Theme.background)
+        lbl = ctk.CTkLabel(self, text="Área Gráfica (CAD)", text_color=Theme.headline)
+        lbl.pack(padx=20, pady=20)
+
+
 class CADInterface:
     def __init__(self, root: ctk.CTk):
-        self.root = root
-        configure_root(self.root)
-
-        self.FrmTabMenu = ctk.CTkFrame(root, bg_color="#101214")
-        # self.FrmTabMenu.pack_propagate(False)
-        self.FrmTabMenu.pack(side="top", fill="x")
-
-        self.FrmSide = ctk.CTkFrame(root, bg_color="#21252b", width=150)
-        self.FrmSide.pack(side="left", fill="y")
-
-        self.FrmRibbon = ctk.CTkFrame(root, bg_color="yellow", height=40)
-        self.FrmRibbon.pack(side="top", fill="x")
-
-        self.FrmStatusBar = ctk.CTkFrame(root, bg_color="green", height=30)
-        self.FrmStatusBar.pack(side="bottom", fill="x")
-
-        MnbFile = ctk.CTkButton(self.FrmTabMenu, text="Arquivo", width=100, height=40,
-                                fg_color="transparent", hover_color="#3d424b", text_color=Palette.headline,
-                                corner_radius=0)
-        MnbFile.pack(side="left", fill="y")
-
-        menu_arquivo_toggle = create_dropdown_menu(
-            master_button=MnbFile,
-            root_window=self.root,
-            options=[
-                ("Novo", lambda: print("Novo")),
-                ("Abrir", lambda: print("Abrir")),
-                ("---", None),
-                ("Sair", self.root.quit)
-            ],
-            palette={
-                "bg": self.FrmTabMenu["bg"],
-                "hover": "#3d424b",
-                "text": Palette.headline
-            }
-        )
-
-        MnbFile.configure(command=menu_arquivo_toggle)
+        # self.root = root
+        configure_root(root)
 
         # # Título
         # self.label_titulo = FtrLabel(root, text="Insira os dados da viga")
@@ -74,7 +45,7 @@ class CADInterface:
         # self.btn_processar.pack(pady=20)
         #
         # # Canvas para desenhar
-        # self.canvas = tk.Canvas(self.root, width=600, height=400)
+        # self.canvas = tk.Canvas(root, width=600, height=400)
         # self.canvas.pack()
         #
         # # Variáveis para armazenar as coordenadas

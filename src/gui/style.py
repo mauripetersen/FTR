@@ -1,59 +1,38 @@
-from typing import NamedTuple
+from dataclasses import dataclass
 import customtkinter as ctk
 import json
 import os
 
 from config import FTR_NAME, themes_dir
 
-__all__ = ["Palette", "FtrLabel", "FtrEntry", "FtrButton", "create_dropdown_menu", "configure_root"]
-
-# region "Palette"
-palette_path = os.path.join(themes_dir, "palettes.json")
-
-with open(palette_path, "r") as f:
-    data = json.load(f)
+__all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "create_dropdown_menu", "configure_root"]
 
 
-def extract_key_values(d, parent_key='', result=None):
-    if result is None:
-        result = []
-
-    for key, value in d.items():
-        full_key = f"{parent_key}.{key}" if parent_key else key
-        if isinstance(value, dict):
-            extract_key_values(value, full_key, result)
-        else:
-            result.append((full_key, value))
-
-    return result
+# region "Theme"
+@dataclass
+class DcCAD:
+    background: str
+    lines: str
 
 
-i_result = extract_key_values(data)
-
-with open("output.txt", "w") as f:
-    for k, v in i_result:
-        f.write(f"{k} = {v}\n")
-
-
-# endregion
-
-
-# region "Palette"
-class EntryPalette(NamedTuple):
+@dataclass
+class DcButton:
     fore: str
     hover: str
     border: str
     text: str
 
 
-class ButtonPalette(NamedTuple):
+@dataclass
+class DcEntry:
     fore: str
     hover: str
     border: str
     text: str
 
 
-class IllustrationPalette(NamedTuple):
+@dataclass
+class DcIllustration:
     stroke: str
     main: str
     highlight: str
@@ -61,40 +40,21 @@ class IllustrationPalette(NamedTuple):
     tertiary: str
 
 
-class Palette(NamedTuple):
-    Entry: EntryPalette
-    Button: ButtonPalette
-    Illustration: IllustrationPalette
+@dataclass
+class DcTheme:
     background: str
     headline: str
     paragraph: str
+    CAD: DcCAD
+    Button: DcButton
+    Entry: DcEntry
+    Illustration: DcIllustration
 
 
-Palette = Palette(
-    EntryPalette(
-        fore="#fffffe",
-        hover="#cccccb",
-        border="#010101",
-        text="#000000"
-    ),
-    ButtonPalette(
-        fore="#7f5af0",
-        hover="#5e43b3",
-        border="#433080",
-        text="#fffffe"
-    ),
-    IllustrationPalette(
-        stroke="#010101",
-        main="#fffffe",
-        highlight="#7f5af0",
-        secondary="#72757e",
-        tertiary="#2cb67d",
-    ),
-    background="#242424",
-    # backgroundCAD="#16161a",
-    headline="#fffffe",
-    paragraph="#94a1b2",
-)
+theme_path = os.path.join(themes_dir, "DarkMode.json")
+with open(theme_path, 'r', encoding='utf-8') as f:
+    data_dict = json.load(f)
+Theme = DcTheme(**data_dict)
 
 
 # endregion
@@ -104,8 +64,8 @@ def FtrLabel(master, text, font_name="Cambria", font_height=14):
     return ctk.CTkLabel(
         master,
         text=text,
-        fg=Palette.paragraph,
-        bg=Palette.background,
+        fg=Theme.paragraph,
+        bg=Theme.background,
         relief=ctk.FLAT,
         bd=0,
         font=(font_name, font_height)
@@ -116,8 +76,8 @@ def FtrEntry(master, text="", font_name="Cambria", font_height=14):
     return ctk.CTkEntry(
         master,
         # text=text,
-        fg=Palette.Entry.text,
-        bg=Palette.Entry.fore,
+        fg=Theme.Entry.text,
+        bg=Theme.Entry.fore,
         relief=ctk.FLAT,
         bd=0,
         font=(font_name, font_height)
@@ -129,9 +89,9 @@ def FtrButton(master, text, command=None, font_name="Cambria", font_height=14):
         master,
         text=text,
         command=command,
-        fg=Palette.Button.text,
-        bg=Palette.Button.fore,
-        activebackground=Palette.Button.hover,
+        fg=Theme.Button.text,
+        bg=Theme.Button.fore,
+        activebackground=Theme.Button.hover,
         relief=ctk.FLAT,
         bd=0,
         font=(font_name, font_height)
@@ -175,8 +135,8 @@ def create_dropdown_menu(master_button, root_window, options, palette):
     return toggle
 
 
-def configure_root(root: ctk.CTk, title=FTR_NAME, fg_color=Palette.background, flat=False,
-                   maximized=True, win_size=(1200, 800), min_size=(800, 600), max_size=(1920, 1080), centered=True):
+def configure_root(root: ctk.CTk, title=FTR_NAME, fg_color=Theme.background, flat=False,
+                   maximized=True, win_size=(1200, 800), min_size=(800, 600), max_size=(1920, 1080)):
     root.title(title)
     root.configure(fg_color=fg_color)
     root.overrideredirect(flat)  # flat UI
@@ -187,13 +147,11 @@ def configure_root(root: ctk.CTk, title=FTR_NAME, fg_color=Palette.background, f
         root.geometry(f"{win_size[0]}x{win_size[1]}")
         root.update()
         root.state("zoomed")
+        root.focus_force()
     else:
-        if centered:
-            screen_size = (root.winfo_screenwidth(), root.winfo_screenheight())
-            pos = (int((screen_size[0] - win_size[0]) / 2),
-                   int((screen_size[1] - win_size[1]) / 2))
-            root.geometry(f"{win_size[0]}x{win_size[1]}+{pos[0]}+{pos[1]}")
-        else:
-            root.geometry(f"{win_size[0]}x{win_size[1]}")
+        screen_size = (root.winfo_screenwidth(), root.winfo_screenheight())
+        pos = (int((screen_size[0] - win_size[0]) / 2),
+               int((screen_size[1] - win_size[1]) / 2))
+        root.geometry(f"{win_size[0]}x{win_size[1]}+{pos[0]}+{pos[1]}")
         root.minsize(*win_size)
         root.maxsize(*win_size)

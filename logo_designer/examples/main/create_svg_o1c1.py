@@ -1,0 +1,38 @@
+import svgwrite
+
+dwg = svgwrite.Drawing('logo.svg', size=('2000', '2000'))
+dwg.add(dwg.rect(insert=(0, 0), size=('100%', '100%'), fill='#242424'))
+
+dwg.add(dwg.circle(center=(1832.174, 729.61), r=90, fill='none', stroke='#FFFFFF', stroke_width=40))
+dwg.add(dwg.circle(center=(1832.174, 729.61), r=30, fill='#FFFFFF', stroke='#FFFFFF', stroke_width=0))
+dwg.add(dwg.circle(center=(1000, 125), r=90, fill='none', stroke='#FFFFFF', stroke_width=40))
+dwg.add(dwg.circle(center=(1000, 125), r=30, fill='#FFFFFF', stroke='#FFFFFF', stroke_width=0))
+dwg.add(dwg.circle(center=(167.826, 729.61), r=90, fill='none', stroke='#FFFFFF', stroke_width=40))
+dwg.add(dwg.circle(center=(167.826, 729.61), r=30, fill='#FFFFFF', stroke='#FFFFFF', stroke_width=0))
+dwg.add(dwg.circle(center=(485.688, 1707.89), r=90, fill='none', stroke='#FFFFFF', stroke_width=40))
+dwg.add(dwg.circle(center=(485.688, 1707.89), r=30, fill='#FFFFFF', stroke='#FFFFFF', stroke_width=0))
+dwg.add(dwg.circle(center=(1514.312, 1707.89), r=90, fill='none', stroke='#FFFFFF', stroke_width=40))
+dwg.add(dwg.circle(center=(1514.312, 1707.89), r=30, fill='#FFFFFF', stroke='#FFFFFF', stroke_width=0))
+
+dwg.add(dwg.path(d='M1448.923,1617.89 551.077,1617.89 273.627,763.987 1000,236.246 1726.373,763.987 Z', stroke='#FFFFFF', fill='none', stroke_width='40'))
+dwg.add(dwg.path(d='M591.031,867.118 747.243,1347.89 1252.757,1347.89 1408.969,867.118 1000,569.984 Z', stroke='#FFFFFF', fill='none', stroke_width='28'))
+dwg.add(dwg.path(d='M1000,458.738 1514.77,832.741 1318.146,1437.89 681.854,1437.89 485.23,832.741 Z', stroke='#FFFFFF', fill='none', stroke_width='40'))
+dwg.add(dwg.path(d='M1187.368,1257.89 812.632,1257.89 696.832,901.495 1000,681.231 1303.168,901.495 Z', stroke='#FFFFFF', fill='none', stroke_width='40'))
+
+dwg.add(dwg.line(start=(457.876, 1622.295), end=(195.637, 815.205), stroke='#FFFFFF', stroke_width='28'))
+dwg.add(dwg.line(start=(240.637, 676.709), end=(927.188, 177.901), stroke='#FFFFFF', stroke_width='28'))
+dwg.add(dwg.line(start=(1072.812, 177.901), end=(1759.363, 676.709), stroke='#FFFFFF', stroke_width='28'))
+dwg.add(dwg.line(start=(1804.363, 815.205), end=(1542.124, 1622.295), stroke='#FFFFFF', stroke_width='28'))
+dwg.add(dwg.line(start=(82.23, 757.422), end=(400.093, 1735.701), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(947.099, 52.188), end=(114.925, 656.799), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(1885.075, 656.799), end=(1052.901, 52.188), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(1599.907, 1735.701), end=(1917.77, 757.422), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(485.688, 1797.89), end=(1514.312, 1797.89), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(485.23, 832.741), end=(696.832, 901.495), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(1000, 681.231), end=(1000, 458.738), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(812.632, 1257.89), end=(681.854, 1437.89), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(1303.168, 901.495), end=(1514.77, 832.741), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(1187.368, 1257.89), end=(1318.146, 1437.89), stroke='#FFFFFF', stroke_width='40'))
+dwg.add(dwg.line(start=(1424.312, 1707.89), end=(575.688, 1707.89), stroke='#FFFFFF', stroke_width='28'))
+
+dwg.save()
