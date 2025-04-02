@@ -1,6 +1,10 @@
 src/
 	AI/
+		__init__.py
+		...
 	beam/
+		__init__.py
+		...
 	gui/
 		interface/
 			__init__.py
