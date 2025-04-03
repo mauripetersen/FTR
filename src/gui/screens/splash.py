@@ -51,13 +51,13 @@ class SplashScreen(ctk.CTk):
             self.progress_val += 1
             self.PrgLoad.set(self.progress_val / 100)
             # self.progress_after_id = self.after(20, self.load_progress)  # flerken 1
-            self.progress_after_id = self.after(1, self.load_progress)
+            self.progress_after_id = self.after(10, self.load_progress)
         else:
             self.start_main_menu()
 
     def start_main_menu(self):
-        if self.progress_after_id:
-            self.after_cancel(self.progress_after_id)
+        # if self.progress_after_id:
+        #     self.after_cancel(self.progress_after_id)
         self.destroy()
         app = App()
         app.run()

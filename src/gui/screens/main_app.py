@@ -16,7 +16,6 @@ class App(ctk.CTk):
         # self.FrmTab.pack_propagate(False)  # Prevents the Frame from adjusting to the content (height fixed)
         self.FrmTab.pack(side="top", fill="x")
         self.active_menu: ctk.CTkFrame | None = None
-
         tab.create_tab(self.FrmTab, self)
 
         # Sidebar (menu lateral)
