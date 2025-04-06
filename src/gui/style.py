@@ -5,7 +5,7 @@ import os
 
 from config import FTR_NAME_0, assets_dir, themes_dir
 
-__all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "configure_root"]
+__all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "configure_TopLevel"]
 
 
 # region "Theme"
@@ -111,15 +111,15 @@ def FtrButton(master, text, command=None, font_name="Cambria", font_height=14):
     )
 
 
-def configure_root(root: ctk.CTk, title=FTR_NAME_0, fg_color=Theme.background, flat=False,
-                   maximized=True, win_size=(1200, 800), min_size=(800, 600), max_size=(1920, 1080)):
+def configure_TopLevel(root: ctk.CTkToplevel, title=FTR_NAME_0, fg_color=Theme.background, flat=False,
+                       maximized=True, win_size=(1200, 800), min_size=(800, 600), max_size=(1920, 1080)):
     root.title(title)
     root.configure(fg_color=fg_color)
     root.overrideredirect(flat)  # flat UI
 
     try:
-        logo_path = os.path.abspath(os.path.join(assets_dir, "icon/icon_x256.ico"))
-        root.iconbitmap(logo_path)
+        logo_path = os.path.normpath(os.path.join(assets_dir, "icon/icon_x256.ico"))
+        root.after(250, lambda: root.iconbitmap(logo_path))
     except Exception as e:
         print(f"Error: {e}")
 

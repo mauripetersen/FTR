@@ -1,0 +1,50 @@
+{
+	"elastic_modulus": 210000,
+	"section": {
+		"type": "retangular",
+		"b": 30.0,
+		"h": 50.0
+	},
+	"supports": [
+		{
+			"type": "roller",
+			"position": 0,
+			"angle": 0
+		},
+		{
+			"type": "pinned",
+			"position": 5,
+			"angle": 0
+		},
+		{
+			"type": "pinned",
+			"position": 9,
+			"angle": 0
+		}
+	],
+	"loads": [
+		{
+			"type": "M",
+			"position": 2.5,
+			"value": 5.0
+		},
+		{
+			"type": "PL",
+			"position": 4,
+			"value": -10.0
+		},
+		{
+			"type": "UDL",
+			"start_position": 5,
+			"end_position": 7,
+			"value": -2.0
+		},
+		{
+			"type": "LVDL",
+			"start_position": 7,
+			"end_position": 9,
+			"start_value": -2.0,
+			"end_value": -4.0
+		}
+	]
+}

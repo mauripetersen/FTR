@@ -6,6 +6,7 @@
 
 # Cache files:
 __pycache__/
+.pytest_cache
 
 # pyenv:
 # .python-version			# just for now I'll push it. (maybe)
