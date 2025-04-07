@@ -1,0 +1,11 @@
+{
+	"elastic_modulus": 210000,
+	"section": null,
+	"spans": [],
+	"supports": [],
+	"loads": [],
+	"metadata": {
+		"created_by": "FTR",
+		"version": "1.0"
+	}
+}

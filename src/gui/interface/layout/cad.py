@@ -1,23 +1,91 @@
 import customtkinter as ctk
+import tkinter as tk
+from PIL import Image, ImageDraw, ImageTk
 
 from config import *
 from gui.style import Theme
 
-__all__ = ["CAD"]
+__all__ = ["CADInterface"]
 
 
-class CAD(ctk.CTkCanvas):
-    def __init__(self, master):
+class CADInterface(ctk.CTkFrame):
+    def __init__(self, master, project):
         super().__init__(master)
+        self.canvas = tk.Canvas(self, bg=Theme.CAD.background, highlightthickness=0)
+        self.canvas.pack(fill="both", expand=True)
 
-        self.bind("<MouseWheel>", perform_zoom)
+        self.canvas.bind("<Button-1>", self.on_click)
+        self.canvas.bind("<B1-Motion>", self.on_drag)
+
+        # self.adding_load = False
+        # self.canvas.bind("<Button-3>", self.toggle_add_load)
+
+        self.bind("<MouseWheel>", self.perform_zoom)
+
+    def on_click(self, event=None):
+        draw_support(self, self.canvas, event)
+
+        # if not self.start_x and not self.start_y:
+        #     # Início do desenho da viga
+        #     self.start_x = event.x
+        #     self.start_y = event.y
+        # else:
+        #     # Desenha a viga
+        #     self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="white")
+        #     self.start_x, self.start_y = None, None
+
+    def on_drag(self, event):
+        ...
+
+    #     if self.start_x and self.start_y:
+    #         # Atualiza o desenho da viga enquanto o mouse é movido
+    #         self.canvas.delete("temp_line")  # Remove a linha temporária anterior
+    #         self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="white",
+    #                                 tags="temp_line")
+
+    def perform_zoom(self, event):
+        if event.delta > 0:
+            print("zoom in")
+        elif event.delta < 0:
+            print("zoom out")
 
 
-def perform_zoom(event):
-    if event.delta > 0:
-        print("zoom in")
-    elif event.delta < 0:
-        print("zoom out")
+def draw_support(frame: ctk.CTkFrame, canvas: tk.Canvas, event: tk.Event):
+    img_support = Image.new("RGBA", (150, 150))
+    dwg = ImageDraw.Draw(img_support)
+
+    support_type = "roller"
+    match support_type:
+        case "roller":
+            dwg.line((75, 0, 120, 78), fill="white", width=3)
+            dwg.line((75, 0, 30, 78), fill="white", width=3)
+            dwg.line((30, 78, 120, 78), fill="white", width=3)
+
+            dwg.line((0, 78, 150, 78), fill="white", width=3)
+            dwg.line((0, 100, 150, 100), fill="white", width=3)
+        case "pinned":
+            dwg.line((75, 0, 120, 78), fill="white", width=3)
+            dwg.line((75, 0, 30, 78), fill="white", width=3)
+            dwg.line((30, 78, 120, 78), fill="white", width=3)
+
+            dwg.line((0, 78, 150, 78), fill="white", width=3)
+
+            dwg.line((0, 98, 30, 78), fill="white", width=3)
+            dwg.line((30, 98, 60, 78), fill="white", width=3)
+            dwg.line((60, 98, 90, 78), fill="white", width=3)
+            dwg.line((90, 98, 120, 78), fill="white", width=3)
+            dwg.line((120, 98, 150, 78), fill="white", width=3)
+        case "fixed":
+            dwg.line((0, 0, 150, 0), fill="white", width=3)
+
+            dwg.line((0, 20, 30, 0), fill="white", width=3)
+            dwg.line((30, 20, 60, 0), fill="white", width=3)
+            dwg.line((60, 20, 90, 0), fill="white", width=3)
+            dwg.line((90, 20, 120, 0), fill="white", width=3)
+            dwg.line((120, 20, 150, 0), fill="white", width=3)
+
+    frame.imgTk_support = ImageTk.PhotoImage(img_support)
+    canvas.create_image(event.x, event.y, anchor="n", image=frame.imgTk_support)
 
 
 # class CADInterface:

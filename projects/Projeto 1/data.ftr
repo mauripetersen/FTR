@@ -1,25 +1,40 @@
 {
 	"elastic_modulus": 210000,
 	"section": {
-		"type": "retangular",
+		"type": "rectangular",
 		"b": 30.0,
 		"h": 50.0
 	},
+	"spans": [
+		{
+			"start": 0.0,
+			"end": 5.0
+		},
+		{
+			"start": 5.0,
+			"end": 9.0
+		},
+		{
+			"start": 9.0,
+			"end": 12.0
+		}
+	],
 	"supports": [
 		{
 			"type": "roller",
-			"position": 0,
-			"angle": 0
+			"angle": 0.0
 		},
 		{
 			"type": "pinned",
-			"position": 5,
-			"angle": 0
+			"angle": 0.0
 		},
 		{
 			"type": "pinned",
-			"position": 9,
-			"angle": 0
+			"angle": 0.0
+		},
+		{
+			"type": null,
+			"angle": null
 		}
 	],
 	"loads": [
@@ -30,21 +45,30 @@
 		},
 		{
 			"type": "PL",
-			"position": 4,
+			"position": 4.0,
 			"value": -10.0
 		},
 		{
 			"type": "UDL",
-			"start_position": 5,
-			"end_position": 7,
+			"start_position": 5.0,
+			"end_position": 7.0,
 			"value": -2.0
 		},
 		{
 			"type": "LVDL",
-			"start_position": 7,
-			"end_position": 9,
+			"start_position": 7.0,
+			"end_position": 9.0,
 			"start_value": -2.0,
 			"end_value": -4.0
+		},
+		{
+			"type": "PL",
+			"position": 12.0,
+			"value": -5.0
 		}
-	]
+	],
+	"metadata": {
+		"created_by": "FTR",
+		"version": "1.0"
+	}
 }
