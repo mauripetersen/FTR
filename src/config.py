@@ -1,8 +1,46 @@
+from enum import StrEnum
 import sys
 import os
 
-__all__ = ["base_dir", "assets_dir", "configs_dir", "themes_dir", "projects_dir", "system_dir",
+__all__ = ["SectionType", "SupportType", "LoadType",
+           "base_dir", "assets_dir", "configs_dir", "themes_dir", "projects_dir", "system_dir",
            "FTR_NAME_0", "FTR_NAME_1", "FTR_NAME_2", "FTR_MODULO_ELASTICIDADE"]
+
+
+class SectionType(StrEnum):
+    """
+    "R" = Rectangle
+    "I" = I-shape
+    "T" = T-shape
+    """
+    R = "R"
+    I = "I"
+    T = "T"
+
+
+class SupportType(StrEnum):
+    """
+    "roller" = 2 degrees of freedom
+    "pinned" = 1 degree of freedom
+    "fixed" = 0 degrees of freedom
+    """
+    Roller = "roller"
+    Pinned = "pinned"
+    Fixed = "fixed"
+
+
+class LoadType(StrEnum):
+    """
+    "M" = Momentum
+    "PL" = Point Load
+    "UDL" = Uniformly Distributed Load
+    "LVDL" = Linearly Varying Distributed Load
+    """
+    M = "M"
+    PL = "PL"
+    UDL = "UDL"
+    LVDL = "LVDL"
+
 
 # Ensures base_dir for both cases (base_dir = "c:\FTR"):
 if getattr(sys, 'frozen', False):

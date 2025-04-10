@@ -4,6 +4,7 @@ import shutil
 import json
 import os
 
+from config import SectionType, SupportType, LoadType
 from config import FTR_NAME_0, configs_dir, projects_dir
 
 __all__ = ["Project"]
@@ -12,7 +13,12 @@ __all__ = ["Project"]
 class Project:
     def __init__(self, project_name: str | None = None):
         self.name: str | None = project_name
-        self.data: Any | None = None
+
+        self.elastic_modulus: float | None = None
+        self.Section: Section | None = None
+        self.Nodes: list[Node] = []
+        self.Loads: list[Load] = []
+
         self.last_error: str | None = None
 
     def get_project_path(self, check: bool = True) -> str:
@@ -33,7 +39,26 @@ class Project:
         data_path = self.get_data_path()
         try:
             with open(data_path, "r") as f:
-                self.data = json.load(f)
+                data = json.load(f)
+
+            self.elastic_modulus = data["elastic_modulus"]
+            self.Section = Section(data["section"]["type"], data["section"]["dims"])
+
+            self.Nodes = []
+            for node in data["nodes"]:
+                pos = node["position"]
+                sup = node["support"]
+                if sup:
+                    sup_type = sup["type"]
+                    ang = sup["angle"]
+                    self.Nodes.append(Node(pos, Support(sup_type, ang)))
+                else:
+                    self.Nodes.append(Node(pos, None))
+
+            self.Loads = []
+            for load in data["loads"]:
+                self.Loads.append(Load(load["type"], load["position"], load["value"]))
+
             return True
         except Exception as e:
             messagebox.showerror(FTR_NAME_0, f"ERRO ao carregar o arquivo de dados: {e}")
@@ -86,3 +111,46 @@ class Project:
 
     def exists(self) -> bool:
         return os.path.isfile(self.get_data_path(check=False))
+
+
+class Section:
+    def __init__(self,
+                 section_type: SectionType | str | None,
+                 dims: dict | None):
+        self.type = section_type
+        self.dims = dims
+
+
+class Support:
+    def __init__(self,
+                 support_type: SupportType | str,
+                 angle: float):
+        self.type = support_type
+        self.angle = angle
+
+    def __str__(self):
+        return f"(type: {self.type}, angle: {self.angle})"
+
+
+class Node:
+    def __init__(self,
+                 position: float,
+                 support: Support | None):
+        self.position = position
+        self.support = support
+
+    def __str__(self):
+        return f"(pos: {self.position}, support: {self.support})"
+
+
+class Load:
+    def __init__(self,
+                 load_type: LoadType | str,
+                 position: list[float],
+                 value: list[float]):
+        self.type = load_type
+        self.position = position
+        self.value = value
+
+    def __str__(self):
+        return f"(type: {self.type}, position: {self.position}, value: {self.value})"

@@ -12,8 +12,9 @@ class MainScreen(ctk.CTkToplevel):
         super().__init__(master=master)
         configure_TopLevel(self)
 
-        # self.project = Project("Untitled")
-        self.project = None
+        self.project = Project("Projeto 1")
+        self.project.load_data()
+        # self.project = None
 
         # Tab (top menu)
         self.FrmTab = ctk.CTkFrame(self, fg_color=Theme.dark_1, bg_color=Theme.background, corner_radius=0)

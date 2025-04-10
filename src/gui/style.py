@@ -13,6 +13,7 @@ __all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "configure_TopLevel"]
 class ThmCAD:
     background: str
     lines: str
+    select_rect: str
 
 
 @dataclass

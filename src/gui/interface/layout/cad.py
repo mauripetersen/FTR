@@ -2,52 +2,97 @@ import customtkinter as ctk
 import tkinter as tk
 from PIL import Image, ImageDraw, ImageTk
 
-from config import *
 from gui.style import Theme
+from project import Project
 
 __all__ = ["CADInterface"]
 
 
 class CADInterface(ctk.CTkFrame):
-    def __init__(self, master, project):
+    def __init__(self, master: ctk.CTkFrame, project: Project):
         super().__init__(master)
+        self.project = project
+
         self.canvas = tk.Canvas(self, bg=Theme.CAD.background, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
 
-        self.canvas.bind("<Button-1>", self.on_click)
-        self.canvas.bind("<B1-Motion>", self.on_drag)
+        self.view = {
+            "scale": 100,
+            "offset_x": 0,
+            "offset_y": 0,
+            "canvas_width": 0,
+            "canvas_height": 0
+        }
+
+        self.select_rect = None
+        self.start_x = self.start_y = 0
+
+        self.canvas.bind("<Button-1>", self.start_selection)
+        self.canvas.bind("<B1-Motion>", self.update_selection)
+        self.canvas.bind("<ButtonRelease-1>", self.end_selection)
+        self.canvas.bind("<MouseWheel>", self.perform_zoom)
 
         # self.adding_load = False
         # self.canvas.bind("<Button-3>", self.toggle_add_load)
 
-        self.bind("<MouseWheel>", self.perform_zoom)
+        self.load_project_to_canvas()
 
-    def on_click(self, event=None):
-        draw_support(self, self.canvas, event)
-
-        # if not self.start_x and not self.start_y:
-        #     # Início do desenho da viga
-        #     self.start_x = event.x
-        #     self.start_y = event.y
-        # else:
-        #     # Desenha a viga
-        #     self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="white")
-        #     self.start_x, self.start_y = None, None
-
-    def on_drag(self, event):
+    def load_project_to_canvas(self):
         ...
-
-    #     if self.start_x and self.start_y:
-    #         # Atualiza o desenho da viga enquanto o mouse é movido
-    #         self.canvas.delete("temp_line")  # Remove a linha temporária anterior
-    #         self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="white",
-    #                                 tags="temp_line")
+        # nodes = self.project.data.get("nodes", [])
+        #
+        # for k in range(len(nodes) - 1):
+        #     x1, y1 = self.to_screen(nodes[k]["position"], 3)
+        #     x2, y2 = self.to_screen(nodes[k + 1]["position"], 3)
+        #     self.canvas.create_line(x1, y1, x2, y2, fill="white", width=5)
+        #
+        # for node in nodes:
+        #     x, y = self.to_screen(node["position"], 3)
+        #     self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill=Theme.Illustration.highlight, width=0)
 
     def perform_zoom(self, event):
         if event.delta > 0:
-            print("zoom in")
+            self.view["scale"] *= 1.1
         elif event.delta < 0:
-            print("zoom out")
+            self.view["scale"] /= 1.1
+        self.load_project_to_canvas()
+
+    def start_selection(self, event):
+        self.start_x = event.x
+        self.start_y = event.y
+
+        # Creates the rectangle with equal initial coordinates
+        self.select_rect = self.canvas.create_rectangle(self.start_x, self.start_y, self.start_x, self.start_y,
+                                                        outline=Theme.CAD.select_rect)
+
+    def update_selection(self, event):
+        # Updates rectangle while dragging:
+        self.canvas.coords(self.select_rect, self.start_x, self.start_y, event.x, event.y)
+
+    def end_selection(self, event):
+        # Aqui você pode fazer lógica de seleção de elementos
+        coords = self.canvas.coords(self.select_rect)
+        print("Selecionado:", coords)
+
+        # Remove the selection rectangle (by ID)
+        self.canvas.delete(self.select_rect)
+        self.select_rect = None
+
+    def to_screen(self, x_model: float, y_model: float) -> tuple[int, int]:
+        """
+        Converts coordinates from model to canvas.
+        """
+        x_screen = int(x_model * self.view["scale"] + self.view["offset_x"])
+        y_screen = int(y_model * self.view["scale"] + self.view["offset_y"])
+        return x_screen, y_screen
+
+    def to_model(self, x_screen: int, y_screen: int) -> tuple[float, float]:
+        """
+        Converts coordinates from canvas to model.
+        """
+        x_model = (x_screen - self.view["offset_x"]) / self.view["scale"]
+        y_model = (y_screen - self.view["offset_y"]) / self.view["scale"]
+        return x_model, y_model
 
 
 def draw_support(frame: ctk.CTkFrame, canvas: tk.Canvas, event: tk.Event):
@@ -86,92 +131,3 @@ def draw_support(frame: ctk.CTkFrame, canvas: tk.Canvas, event: tk.Event):
 
     frame.imgTk_support = ImageTk.PhotoImage(img_support)
     canvas.create_image(event.x, event.y, anchor="n", image=frame.imgTk_support)
-
-
-# class CADInterface:
-#     def __init__(self, root: ctk.CTk):
-        # self.root = root
-
-        # # Título
-        # self.label_titulo = FtrLabel(root, text="Insira os dados da viga")
-        # self.label_titulo.pack(pady=10)
-        #
-        # # Vão
-        # self.label_comprimento = FtrLabel(root, text="Comprimento da viga (m):")
-        # self.label_comprimento.pack()
-        # self.entry_comprimento = FtrEntry(root)
-        # self.entry_comprimento.pack(pady=5)
-        #
-        # # Carga
-        # self.label_carga = FtrLabel(root, text="Carga (kN):")
-        # self.label_carga.pack()
-        # self.entry_carga = FtrEntry(root)
-        # self.entry_carga.pack(pady=5)
-        #
-        # # Momento
-        # self.label_momento = FtrLabel(root, text="Momento (kN.m):")
-        # self.label_momento.pack()
-        # self.entry_momento = FtrEntry(root)
-        # self.entry_momento.pack(pady=5)
-        #
-        # # Botão
-        # self.btn_processar = FtrButton(root, text="Calcular", command=self.processar_dados)
-        # self.btn_processar.pack(pady=20)
-        #
-        # # Canvas para desenhar
-        # self.canvas = tk.Canvas(root, width=600, height=400)
-        # self.canvas.pack()
-        #
-        # # Variáveis para armazenar as coordenadas
-        # self.start_x = None
-        # self.start_y = None
-        #
-        # # Adicionar eventos de clique e arrasto
-        # self.canvas.bind("<Button-1>", self.on_click)
-        # self.canvas.bind("<B1-Motion>", self.on_drag)
-        #
-        # # Modo de adicionar carga
-        # self.adding_load = False
-        # self.canvas.bind("<Button-3>", self.toggle_add_load)
-
-
-
-
-    # def processar_dados(self):
-    #     comprimento = self.entry_comprimento.get()
-    #     carga = self.entry_carga.get()
-    #     momento = self.entry_momento.get()
-    #
-    #     # Aqui você pode passar os dados para o cálculo (módulo calculos.py)
-    #     print(f"Comprimento: {comprimento} m, Carga: {carga} kN, Momento: {momento} kN.m")
-    #     # Em seguida, você pode usar esses dados em funções de cálculos que estarão no módulo `calculos.py`.
-    #
-    # def on_click(self, event):
-    #     if not self.start_x and not self.start_y:
-    #         # Início do desenho da viga
-    #         self.start_x = event.x
-    #         self.start_y = event.y
-    #     else:
-    #         # Desenha a viga
-    #         self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="black")
-    #         self.start_x, self.start_y = None, None
-    #
-    # def on_drag(self, event):
-    #     if self.start_x and self.start_y:
-    #         # Atualiza o desenho da viga enquanto o mouse é movido
-    #         self.canvas.delete("temp_line")  # Remove a linha temporária anterior
-    #         self.canvas.create_line(self.start_x, self.start_y, event.x, event.y, width=2, fill="black",
-    #                                 tags="temp_line")
-    #
-    # def toggle_add_load(self, event):
-    #     # Alterna o modo de adicionar cargas
-    #     self.adding_load = not self.adding_load
-    #     if self.adding_load:
-    #         print("Modo de adicionar carga ativado")
-    #     else:
-    #         print("Modo de adicionar carga desativado")
-    #
-    # def add_load(self, event):
-    #     if self.adding_load:
-    #         # Adiciona uma carga (por exemplo, um círculo)
-    #         self.canvas.create_oval(event.x - 5, event.y - 5, event.x + 5, event.y + 5, fill="red", tags="load")

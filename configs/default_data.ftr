@@ -1,8 +1,7 @@
 {
 	"elastic_modulus": 210000,
 	"section": null,
-	"spans": [],
-	"supports": [],
+	"nodes": [],
 	"loads": [],
 	"metadata": {
 		"created_by": "FTR",
