@@ -5,7 +5,7 @@ import os
 
 from config import FTR_NAME_0, assets_dir, themes_dir
 
-__all__ = ["Theme", "FtrLabel", "FtrEntry", "FtrButton", "configure_TopLevel"]
+__all__ = ["Theme", "configure_TopLevel"]
 
 
 # region "Theme"
@@ -72,44 +72,6 @@ Theme = ThmTheme(
 
 
 # endregion
-
-
-def FtrLabel(master, text, font_name="Cambria", font_height=14):
-    return ctk.CTkLabel(
-        master,
-        text=text,
-        fg=Theme.paragraph,
-        bg=Theme.background,
-        relief=ctk.FLAT,
-        bd=0,
-        font=(font_name, font_height)
-    )
-
-
-def FtrEntry(master, text="", font_name="Cambria", font_height=14):
-    return ctk.CTkEntry(
-        master,
-        # text=text,
-        fg=Theme.Entry.text,
-        bg=Theme.Entry.fore,
-        relief=ctk.FLAT,
-        bd=0,
-        font=(font_name, font_height)
-    )
-
-
-def FtrButton(master, text, command=None, font_name="Cambria", font_height=14):
-    return ctk.CTkButton(
-        master,
-        text=text,
-        command=command,
-        fg=Theme.Button.text,
-        bg=Theme.Button.fore,
-        activebackground=Theme.Button.hover,
-        relief=ctk.FLAT,
-        bd=0,
-        font=(font_name, font_height)
-    )
 
 
 def configure_TopLevel(root: ctk.CTkToplevel, title=FTR_NAME_0, fg_color=Theme.background, flat=False,

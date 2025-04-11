@@ -37,55 +37,55 @@
 	"loads": [
 		{
 			"type": "M",
-			"position": [
+			"positions": [
 				2.5
 			],
-			"value": [
+			"values": [
 				5.0
 			]
 		},
 		{
 			"type": "PL",
-			"position": [
+			"positions": [
 				4.0
 			],
-			"value": [
+			"values": [
 				-10.0
 			]
 		},
 		{
 			"type": "UDL",
-			"position": [
+			"positions": [
 				5.0,
 				7.0
 			],
-			"value": [
+			"values": [
 				-2.0
 			]
 		},
 		{
 			"type": "LVDL",
-			"position": [
+			"positions": [
 				7.0,
 				9.0
 			],
-			"value": [
+			"values": [
 				-2.0,
 				-4.0
 			]
 		},
 		{
 			"type": "PL",
-			"position": [
+			"positions": [
 				12.0
 			],
-			"value": [
+			"values": [
 				-5.0
 			]
 		}
 	],
 	"metadata": {
 		"created_by": "FTR",
-		"version": "1.0"
+		"version": "1.0.0"
 	}
 }

@@ -1,6 +1,6 @@
 import customtkinter as ctk
 
-from gui.interface import App
+from gui.app import App
 
 
 if __name__ == "__main__":

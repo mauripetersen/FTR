@@ -1,7 +1,8 @@
 import customtkinter as ctk
+from tkinter import messagebox
 
 from gui.style import Theme, configure_TopLevel
-from gui.interface.layout import tab, ribbon, sidebar, statusbar, cad
+from gui.layout import tab, ribbon, sidebar, statusbar, cad
 from project import Project
 
 __all__ = ["MainScreen"]
@@ -12,9 +13,9 @@ class MainScreen(ctk.CTkToplevel):
         super().__init__(master=master)
         configure_TopLevel(self)
 
+        # self.project = Project("Untitled")
         self.project = Project("Projeto 1")
         self.project.load_data()
-        # self.project = None
 
         # Tab (top menu)
         self.FrmTab = ctk.CTkFrame(self, fg_color=Theme.dark_1, bg_color=Theme.background, corner_radius=0)
@@ -47,4 +48,14 @@ class MainScreen(ctk.CTkToplevel):
         self.cad_interface = cad.CADInterface(self.FrmCAD, self.project)
         self.cad_interface.pack(fill="both", expand=True)
 
-        self.protocol("WM_DELETE_WINDOW", self.master.destroy)
+        self.protocol("WM_DELETE_WINDOW", self.confirm_close)
+
+    def confirm_close(self):
+        if self.project.modified:
+            result = messagebox.askyesnocancel("Projeto não salvo", "Deseja salvar antes de fechar?")
+            if result is None:
+                return
+            elif result:
+                if not self.project.save_data():
+                    return
+        self.master.destroy()

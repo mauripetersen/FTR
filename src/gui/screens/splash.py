@@ -50,7 +50,7 @@ class SplashScreen(ctk.CTkToplevel):
         if self.progress_val < 100:
             self.progress_val += 0.5
             self.PrgLoad.set(self.progress_val / 100)
-            # flerken 1
+            # flerken 1:
             # self.after(10, self.load_progress)
             self.after(1, self.load_progress)
         else:

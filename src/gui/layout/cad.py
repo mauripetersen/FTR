@@ -17,16 +17,16 @@ class CADInterface(ctk.CTkFrame):
         self.canvas.pack(fill="both", expand=True)
 
         self.view = {
-            "scale": 100,
-            "offset_x": 0,
-            "offset_y": 0,
-            "canvas_width": 0,
-            "canvas_height": 0
+            "scale": 1,
+            "ppm": 100,
+            "P": (-5.0, 5.0)
         }
 
+        self.garbage = []
         self.select_rect = None
         self.start_x = self.start_y = 0
 
+        self.canvas.bind("<Motion>", self.on_motion)
         self.canvas.bind("<Button-1>", self.start_selection)
         self.canvas.bind("<B1-Motion>", self.update_selection)
         self.canvas.bind("<ButtonRelease-1>", self.end_selection)
@@ -35,27 +35,44 @@ class CADInterface(ctk.CTkFrame):
         # self.adding_load = False
         # self.canvas.bind("<Button-3>", self.toggle_add_load)
 
-        self.load_project_to_canvas()
+        self.draw_canvas()
 
-    def load_project_to_canvas(self):
-        ...
-        # nodes = self.project.data.get("nodes", [])
-        #
-        # for k in range(len(nodes) - 1):
-        #     x1, y1 = self.to_screen(nodes[k]["position"], 3)
-        #     x2, y2 = self.to_screen(nodes[k + 1]["position"], 3)
-        #     self.canvas.create_line(x1, y1, x2, y2, fill="white", width=5)
-        #
-        # for node in nodes:
-        #     x, y = self.to_screen(node["position"], 3)
-        #     self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill=Theme.Illustration.highlight, width=0)
+    def on_motion(self, event):
+        self.master.master.FrmStatusBar.LblPos.configure(text=f"Pos={self.to_model(event.x, event.y, 2)}")
+
+    def draw_canvas(self):
+        for g in self.garbage:
+            self.canvas.delete(g)
+        self.garbage.clear()
+
+        nodes = self.project.nodes
+
+        for k in range(len(nodes) - 1):
+            x1, y1 = self.to_screen(nodes[k].position, 0)
+            x2, y2 = self.to_screen(nodes[k + 1].position, 0)
+            self.garbage.append(self.canvas.create_line(x1, y1, x2, y2, fill="white", width=5))
+
+        for node in nodes:
+            x, y = self.to_screen(node.position, 0)
+            self.garbage.append(self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill=Theme.Illustration.highlight,
+                                                        width=0))
 
     def perform_zoom(self, event):
+        Mzx, Mzy = self.to_model(event.x, event.y)
+
         if event.delta > 0:
-            self.view["scale"] *= 1.1
-        elif event.delta < 0:
-            self.view["scale"] /= 1.1
-        self.load_project_to_canvas()
+            s = 1.1
+        else:
+            s = 1 / 1.1
+        self.view["scale"] *= s
+
+        P0x, P0y = self.view["P"]
+        P1x = Mzx - (Mzx - P0x) / s
+        P1y = Mzy - (Mzy - P0y) / s
+
+        self.view["P"] = (P1x, P1y)
+
+        self.draw_canvas()
 
     def start_selection(self, event):
         self.start_x = event.x
@@ -71,8 +88,8 @@ class CADInterface(ctk.CTkFrame):
 
     def end_selection(self, event):
         # Aqui você pode fazer lógica de seleção de elementos
-        coords = self.canvas.coords(self.select_rect)
-        print("Selecionado:", coords)
+        # coords = self.canvas.coords(self.select_rect)
+        # print("Selecionado:", coords)
 
         # Remove the selection rectangle (by ID)
         self.canvas.delete(self.select_rect)
@@ -82,16 +99,21 @@ class CADInterface(ctk.CTkFrame):
         """
         Converts coordinates from model to canvas.
         """
-        x_screen = int(x_model * self.view["scale"] + self.view["offset_x"])
-        y_screen = int(y_model * self.view["scale"] + self.view["offset_y"])
+        scale, ppm, P = self.view.values()
+        x_screen = int((x_model - P[0]) * ppm * scale)
+        y_screen = int((P[1] - y_model) * ppm * scale)
         return x_screen, y_screen
 
-    def to_model(self, x_screen: int, y_screen: int) -> tuple[float, float]:
+    def to_model(self, x_screen: int, y_screen: int, ndigits: int = 0) -> tuple[float, float]:
         """
         Converts coordinates from canvas to model.
         """
-        x_model = (x_screen - self.view["offset_x"]) / self.view["scale"]
-        y_model = (y_screen - self.view["offset_y"]) / self.view["scale"]
+        scale, ppm, P = self.view.values()
+        x_model = P[0] + x_screen / (ppm * scale)
+        y_model = P[1] - y_screen / (ppm * scale)
+        if ndigits > 0:
+            x_model = round(x_model, ndigits)
+            y_model = round(y_model, ndigits)
         return x_model, y_model
 
 
