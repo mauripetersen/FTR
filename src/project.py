@@ -207,6 +207,8 @@ class Node:
                  support: Support | None):
         self.position = float(position)
         self.support = support
+
+        self.is_highlighted = False
         self.is_selected = False
 
     def __str__(self):
@@ -227,6 +229,8 @@ class Load:
         self.type = load_type
         self.positions = [float(pos) for pos in positions]
         self.values = [float(val) for val in values]
+
+        self.is_highlighted = False
         self.is_selected = False
 
     def __str__(self):

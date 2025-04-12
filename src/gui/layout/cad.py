@@ -1,9 +1,11 @@
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image, ImageDraw, ImageTk
+from typing import Any
+import math
 
 from gui.style import Theme
-from project import Project
+from project import Project, Section, Support, Node, Load, LoadType
 
 __all__ = ["CADInterface"]
 
@@ -27,9 +29,9 @@ class CADInterface(ctk.CTkFrame):
         self.start_x = self.start_y = 0
 
         self.canvas.bind("<Motion>", self.on_motion)
-        self.canvas.bind("<Button-1>", self.start_selection)
-        self.canvas.bind("<B1-Motion>", self.update_selection)
-        self.canvas.bind("<ButtonRelease-1>", self.end_selection)
+        self.canvas.bind("<Button-1>", self.button_down_left)
+        self.canvas.bind("<B1-Motion>", self.button_move_left)
+        self.canvas.bind("<ButtonRelease-1>", self.button_up_left)
         self.canvas.bind("<MouseWheel>", self.perform_zoom)
 
         # self.adding_load = False
@@ -40,22 +42,32 @@ class CADInterface(ctk.CTkFrame):
     def on_motion(self, event):
         self.master.master.FrmStatusBar.LblPos.configure(text=f"Pos={self.to_model(event.x, event.y, 2)}")
 
-    def draw_canvas(self):
-        for g in self.garbage:
-            self.canvas.delete(g)
-        self.garbage.clear()
+        near_node = self.get_nearest(event)
+        if near_node:
+            self.canvas.configure(cursor="hand2")
+        else:
+            self.canvas.configure(cursor="arrow")
 
-        nodes = self.project.nodes
+        self.draw_canvas()
 
-        for k in range(len(nodes) - 1):
-            x1, y1 = self.to_screen(nodes[k].position, 0)
-            x2, y2 = self.to_screen(nodes[k + 1].position, 0)
-            self.garbage.append(self.canvas.create_line(x1, y1, x2, y2, fill="white", width=5))
+    def get_nearest(self, event) -> Any:
+        for node in self.project.nodes:
+            nx, ny = self.to_screen(node.position, 0)
+            d = 15
+            node.is_highlighted = False
+            if point_in_rect(event.x, event.y, nx - d, ny - d, nx + d, ny + d):
+                node.is_highlighted = True
+                return node
+        return None
 
-        for node in nodes:
-            x, y = self.to_screen(node.position, 0)
-            self.garbage.append(self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill=Theme.Illustration.highlight,
-                                                        width=0))
+    def button_down_left(self, event):
+        self.start_selection(event)
+
+    def button_move_left(self, event):
+        self.update_selection(event)
+
+    def button_up_left(self, event):
+        self.end_selection(event)
 
     def perform_zoom(self, event):
         Mzx, Mzy = self.to_model(event.x, event.y)
@@ -115,6 +127,56 @@ class CADInterface(ctk.CTkFrame):
             x_model = round(x_model, ndigits)
             y_model = round(y_model, ndigits)
         return x_model, y_model
+
+    def draw_canvas(self):
+        for g in self.garbage:
+            self.canvas.delete(g)
+        self.garbage.clear()
+
+        nodes = self.project.nodes
+        for k in range(len(nodes) - 1):
+            x1, y1 = self.to_screen(nodes[k].position, 0)
+            x2, y2 = self.to_screen(nodes[k + 1].position, 0)
+            self.garbage.append(self.canvas.create_line(x1, y1, x2, y2, fill="white", width=5))
+
+        for node in nodes:
+            x, y = self.to_screen(node.position, 0)
+            clr = "#ff0000" if node.is_highlighted else Theme.Illustration.highlight
+            self.garbage.append(self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill=clr, width=0))
+
+        loads = self.project.loads
+        for load in loads:
+            if load.type == LoadType.M:
+                pos = self.to_screen(load.positions[0], 0)
+                val = load.values[0]
+                r = 80 * self.view["scale"]
+                self.garbage.append(
+                    self.canvas.create_arc(pos[0] - r, pos[1] - r, pos[0] + r, pos[1] + r, start=45, extent=270,
+                                           style="arc", outline="#5566ff", width=3))
+
+                if val > 0:
+                    p1 = (r / 2, - r * math.sqrt(3) / 2)
+                    p2 = (r / 2, - r * math.sqrt(3) / 2)
+                    p3 = (r / 2, - r * math.sqrt(3) / 2)
+                else:
+                    ...
+
+                self.garbage.append(self.canvas.create_line(0, 0, 0, 0, width=3))
+            elif load.type == LoadType.PL:
+                pos = self.to_screen(load.positions[0], 0)
+                val = load.values[0]
+                d = 100 * self.view["scale"]
+                
+                if val > 0:
+                    p1 = (pos[0], -d)
+                else:
+                    p1 = (pos[0], d)
+
+                self.garbage.append(self.canvas.create_line(*pos, *p1, fill="#5566ff", width=3))
+
+
+def point_in_rect(x, y, x1, y1, x2, y2) -> bool:
+    return x1 <= x <= x2 and y1 <= y <= y2
 
 
 def draw_support(frame: ctk.CTkFrame, canvas: tk.Canvas, event: tk.Event):
