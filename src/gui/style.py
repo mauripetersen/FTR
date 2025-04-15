@@ -12,8 +12,12 @@ __all__ = ["Theme", "configure_TopLevel"]
 @dataclass
 class ThmCAD:
     background: str
-    lines: str
+    grid: str
     select_rect: str
+    spans: str
+    nodes: str
+    supports: str
+    loads: str
 
 
 @dataclass

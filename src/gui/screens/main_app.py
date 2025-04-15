@@ -35,10 +35,11 @@ class MainScreen(ctk.CTkToplevel):
         self.FrmRibbon.pack_propagate(False)  # Prevents the Frame from adjusting to the content
         self.FrmRibbon.pack(side="top", fill="x")
         ribbon.create_ribbon(self, self.FrmRibbon)
-
+        
         # Status bar
         self.FrmStatusBar = ctk.CTkFrame(self, fg_color=Theme.Illustration.secondary, bg_color=Theme.background,
                                          corner_radius=0, height=30)  # height = 25
+        self.FrmStatusBar.pack_propagate(False)  # Prevents the Frame from adjusting to the content
         self.FrmStatusBar.pack(side="bottom", fill="x")
         statusbar.create_statusbar(self, self.FrmStatusBar)
 

@@ -45,12 +45,30 @@
 			]
 		},
 		{
+			"type": "M",
+			"positions": [
+				7.0
+			],
+			"values": [
+				-5.0
+			]
+		},
+		{
 			"type": "PL",
 			"positions": [
 				4.0
 			],
 			"values": [
 				-10.0
+			]
+		},
+		{
+			"type": "PL",
+			"positions": [
+				9.0
+			],
+			"values": [
+				10.0
 			]
 		},
 		{

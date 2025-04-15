@@ -8,7 +8,7 @@ from config import __version__
 from config import SectionType, SupportType, LoadType
 from config import FTR_NAME_0, projects_dir
 
-__all__ = ["Project", "Section", "Support", "Node", "Load"]
+__all__ = ["Project", "Section", "Support", "Node", "Load", "LoadType"]
 
 
 class Project:
@@ -191,6 +191,9 @@ class Support:
         self.type = support_type
         self.angle = float(angle)
 
+        self.image = None
+        self.imgDims = {"side": 60, "dy": 15}
+
     def __str__(self):
         return f"Support(type={self.type}, angle={self.angle})"
 
@@ -207,6 +210,10 @@ class Node:
                  support: Support | None):
         self.position = float(position)
         self.support = support
+
+        self.image = None
+        self.imgDims = {"radius": 5, "border": 0}
+        self.bbox = {"radius_1": 15}
 
         self.is_highlighted = False
         self.is_selected = False
@@ -229,6 +236,16 @@ class Load:
         self.type = load_type
         self.positions = [float(pos) for pos in positions]
         self.values = [float(val) for val in values]
+
+        self.image = None
+        self.imgDims = {LoadType.M: {"radius_point": 4, "radius": 50, "arrow_x": 15, "arrow_y": 15, "border": 20},
+                        LoadType.PL: {"height": 90, "arrow_x": 10, "arrow_y": 20, "border": 15},
+                        LoadType.UDL: {},
+                        LoadType.LVDL: {}}
+        self.bbox = {LoadType.M: {"radius_1": 8, "radius_2": 35, "radius_3": 65},
+                     LoadType.PL: {"border_x": 15, "border_y": 15},
+                     LoadType.UDL: {},
+                     LoadType.LVDL: {}}
 
         self.is_highlighted = False
         self.is_selected = False

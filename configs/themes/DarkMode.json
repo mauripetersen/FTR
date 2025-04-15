@@ -6,8 +6,12 @@
 	"paragraph": "#94a1b2",
 	"CAD": {
 		"background": "#16161a",
-		"lines": "#94a1b2",
-		"select_rect": "#00ffff"
+		"grid": ["#404047", "#28282f"],
+		"select_rect": "#2cb67d",
+		"spans": "#ffffff",
+		"nodes": ["#7f5af0", "#ff0000"],
+		"supports": "#eeeeee",
+		"loads": ["#1da9f0", "#ff0000"]
 	},
 	"Button": {
 		"fore": "#7f5af0",

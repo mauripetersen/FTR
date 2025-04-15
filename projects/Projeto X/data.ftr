@@ -1,0 +1,10 @@
+{
+	"elastic_modulus": null,
+	"section": null,
+	"nodes": [],
+	"loads": [],
+	"metadata": {
+		"created_by": "FTR",
+		"version": "1.0.0"
+	}
+}
