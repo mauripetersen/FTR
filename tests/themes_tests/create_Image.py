@@ -10,19 +10,27 @@ def main() -> None:
 
     result = extract_key_values(data)
 
-    wi = 800
-    he = 2000
     n = len(result)
-    dx = wi / 2
-    dy = he / n
+    dx = 500
+    dy = 100
+
+    wi = 2 * dx
+    he = dy * n
 
     img = Image.new("RGB", (wi, he), color="#ffffff")
     draw = ImageDraw.Draw(img)
-    # font = ImageFont.load_default()
     font = ImageFont.truetype("cambria", 32)
 
     for i, (k, v) in enumerate(result):
-        draw.rectangle([wi / 2, dy * i, wi, dy * (i + 1)], fill=f"#{v[1:7]}", outline="#000000")
+        if type(v) is list:
+            cont = len(v)
+            for ix, item in enumerate(v):
+                clr = f"#{item[1:7]}"
+                draw.rectangle([dx * (1 + ix / cont), dy * i, dx * (1 + (ix + 1) / cont), dy * (i + 1)],
+                               fill=clr, outline="#000000")
+        else:
+            clr = f"#{v[1:7]}"
+            draw.rectangle([wi / 2, dy * i, wi, dy * (i + 1)], fill=clr, outline="#000000")
 
         text = k
 

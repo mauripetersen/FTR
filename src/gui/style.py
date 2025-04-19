@@ -3,59 +3,66 @@ import customtkinter as ctk
 import json
 import os
 
-from config import FTR_NAME_0, assets_dir, themes_dir
+from config import FTR_NAME_0, fonts_dir, icon_dir, themes_dir
 
 __all__ = ["Theme", "configure_TopLevel"]
 
 
 # region "Theme"
 @dataclass
+class ThmTab:
+    background: str
+    text: str
+    highlight: str
+    menu: str
+    secondary: str
+
+
+@dataclass
+class ThmSideBar:
+    background: str
+    text: str
+    highlight: str
+
+
+@dataclass
+class ThmRibbon:
+    background: str
+    text: str
+    highlight: str
+
+
+@dataclass
+class ThmStatusBar:
+    background: str
+    text: str
+    highlight: str
+
+
+@dataclass
 class ThmCAD:
     background: str
-    grid: str
+    grid: list[str]
     select_rect: str
     spans: str
-    nodes: str
+    nodes: list[str]
     supports: str
-    loads: str
-
-
-@dataclass
-class ThmButton:
-    fore: str
-    hover: str
-    border: str
-    text: str
-
-
-@dataclass
-class ThmEntry:
-    fore: str
-    hover: str
-    border: str
-    text: str
-
-
-@dataclass
-class ThmIllustration:
-    stroke: str
-    main: str
-    highlight: str
-    secondary: str
-    tertiary: str
+    loads: list[str]
 
 
 @dataclass
 class ThmTheme:
     background: str
-    dark_1: str
-    dark_2: str
     headline: str
     paragraph: str
+    highlight: str
+    secondary: str
+    tertiary: str
+    Tab: ThmTab
+    SideBar: ThmSideBar
+    Ribbon: ThmRibbon
+    StatusBar: ThmStatusBar
     CAD: ThmCAD
-    Button: ThmButton
-    Entry: ThmEntry
-    Illustration: ThmIllustration
 
 
 theme_path = os.path.join(themes_dir, "DarkMode.json")
@@ -64,14 +71,16 @@ with open(theme_path, 'r', encoding='utf-8') as f:
 
 Theme = ThmTheme(
     background=raw["background"],
-    dark_1=raw["dark_1"],
-    dark_2=raw["dark_2"],
     headline=raw["headline"],
     paragraph=raw["paragraph"],
-    CAD=ThmCAD(**raw["CAD"]),
-    Button=ThmButton(**raw["Button"]),
-    Entry=ThmEntry(**raw["Entry"]),
-    Illustration=ThmIllustration(**raw["Illustration"])
+    highlight=raw["highlight"],
+    secondary=raw["secondary"],
+    tertiary=raw["tertiary"],
+    Tab=ThmTab(**raw["Tab"]),
+    SideBar=ThmSideBar(**raw["SideBar"]),
+    Ribbon=ThmRibbon(**raw["Ribbon"]),
+    StatusBar=ThmStatusBar(**raw["StatusBar"]),
+    CAD=ThmCAD(**raw["CAD"])
 )
 
 
@@ -85,7 +94,7 @@ def configure_TopLevel(root: ctk.CTkToplevel, title=FTR_NAME_0, fg_color=Theme.b
     root.overrideredirect(flat)  # flat UI
 
     try:
-        logo_path = os.path.normpath(os.path.join(assets_dir, "icon/icon_x256.ico"))
+        logo_path = os.path.normpath(os.path.join(icon_dir, "icon_x256.ico"))
         root.after(250, lambda: root.iconbitmap(logo_path))
     except Exception as e:
         print(f"Error: {e}")

@@ -8,7 +8,7 @@ from config import __version__
 from config import SectionType, SupportType, LoadType
 from config import FTR_NAME_0, projects_dir
 
-__all__ = ["Project", "Section", "Support", "Node", "Load", "LoadType"]
+__all__ = ["Project", "Section", "Support", "Node", "Load"]
 
 
 class Project:
@@ -192,6 +192,7 @@ class Support:
         self.angle = float(angle)
 
         self.image = None
+        self.canvas_id = None
         self.imgDims = {"side": 60, "dy": 15}
 
     def __str__(self):
@@ -212,6 +213,7 @@ class Node:
         self.support = support
 
         self.image = None
+        self.canvas_id = None
         self.imgDims = {"radius": 5, "border": 0}
         self.bbox = {"radius_1": 15}
 
@@ -238,7 +240,8 @@ class Load:
         self.values = [float(val) for val in values]
 
         self.image = None
-        self.imgDims = {LoadType.M: {"radius_point": 4, "radius": 50, "arrow_x": 15, "arrow_y": 15, "border": 20},
+        self.canvas_id = None
+        self.imgDims = {LoadType.M: {"radius_point": 4, "radius": 50, "arrow_x": 15, "arrow_y": 15, "border": 30},
                         LoadType.PL: {"height": 90, "arrow_x": 10, "arrow_y": 20, "border": 15},
                         LoadType.UDL: {},
                         LoadType.LVDL: {}}

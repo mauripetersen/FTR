@@ -9,9 +9,9 @@ def create_tab(app, master):
     master.active_menu = None
 
     BtnFile = ctk.CTkButton(master, text="Arquivo",
-                            fg_color="transparent", hover_color=Theme.Button.hover,
+                            fg_color="transparent", hover_color=Theme.Tab.highlight,
                             font=("Segoe UI", 14),
-                            text_color=Theme.Button.text, corner_radius=0, width=80)
+                            text_color=Theme.Tab.text, corner_radius=0, width=80)
     BtnFile.pack(side="left", fill="y")
 
     MnuFile_toggle = create_dropdown_menu(
@@ -20,7 +20,7 @@ def create_tab(app, master):
         master_button=BtnFile,
         options=[
             ("Novo Projeto", lambda: print("Novo projeto")),
-            ("Abrir Projeto", lambda: print("Abrir projeto")),
+            ("Abrir Projeto", app.open_project),
             ("Salvar", lambda: print("Salvar")),
             ("---", None),
             ("Sair", app.quit)
@@ -29,9 +29,9 @@ def create_tab(app, master):
     BtnFile.configure(command=MnuFile_toggle)
 
     BtnTools = ctk.CTkButton(master, text="Ferramentas",
-                             fg_color="transparent", hover_color=Theme.Button.hover,
+                             fg_color="transparent", hover_color=Theme.Tab.highlight,
                              font=("Segoe UI", 14),
-                             text_color=Theme.Button.text, corner_radius=0, width=100)
+                             text_color=Theme.Tab.text, corner_radius=0, width=100)
     BtnTools.pack(side="left", fill="y")
 
     MnuTools_toggle = create_dropdown_menu(
@@ -60,17 +60,17 @@ def create_dropdown_menu(app: ctk.CTk,
     :param options: Tuple list (text, callback_function)
     :return:
     """
-    menu = ctk.CTkFrame(app, fg_color=Theme.background, corner_radius=4, border_width=0)
+    menu = ctk.CTkFrame(app, fg_color=Theme.Tab.menu, corner_radius=4, border_width=0)
     menu.place_forget()
 
     for text, command in options:
         if text == "---":
-            ctk.CTkLabel(menu, text="─" * 10, text_color=Theme.Illustration.tertiary, height=1).pack(pady=2)
+            ctk.CTkLabel(menu, text="─" * 10, text_color=Theme.Tab.secondary, height=1).pack(pady=2)
         else:
             btn = ctk.CTkButton(menu, text=text, command=lambda cmd=command: [cmd(), menu.place_forget()],
                                 font=("Segoe UI", 14),
-                                fg_color="transparent", hover_color=Theme.Button.hover,
-                                text_color=Theme.Button.text, anchor="w", corner_radius=0)
+                                fg_color="transparent", hover_color=Theme.Tab.highlight,
+                                text_color=Theme.Tab.text, anchor="w", corner_radius=0)
             btn.pack(fill="x", pady=3)
 
     def toggle_menu():

@@ -5,8 +5,10 @@ import os
 __version__ = "1.0.0"
 
 __all__ = ["SectionType", "SupportType", "LoadType",
-           "base_dir", "assets_dir", "configs_dir", "themes_dir", "projects_dir", "system_dir",
-           "FTR_NAME_0", "FTR_NAME_1", "FTR_NAME_2", "FTR_ELASTIC_MODULUS", "__version__"]
+           "base_dir",
+           "assets_dir", "fonts_dir", "icon_dir", "images_dir",
+           "configs_dir", "themes_dir", "projects_dir", "system_dir",
+           "FTR_NAME_0", "FTR_NAME_1", "FTR_NAME_2", "__version__"]
 
 
 class SectionType(StrEnum):
@@ -52,6 +54,10 @@ else:
 
 # Folders:
 assets_dir: str = os.path.join(base_dir, "assets")
+fonts_dir: str = os.path.join(assets_dir, "fonts")
+icon_dir: str = os.path.join(assets_dir, "icon")
+images_dir: str = os.path.join(assets_dir, "images")
+
 configs_dir: str = os.path.join(base_dir, "configs")
 themes_dir: str = os.path.join(configs_dir, "themes")
 projects_dir: str = os.path.join(base_dir, "projects")
@@ -60,4 +66,3 @@ system_dir: str = os.path.join(base_dir, "system")
 FTR_NAME_0: str = "FTR - Ferri Tractus Ratio"
 FTR_NAME_1: str = "FTR"
 FTR_NAME_2: str = "Ferri Tractus Ratio"
-FTR_ELASTIC_MODULUS = 210000  # MPa
