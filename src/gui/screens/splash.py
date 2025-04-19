@@ -5,7 +5,6 @@ import os
 
 from config import FTR_NAME_1, FTR_NAME_2, images_dir
 from gui.style import Theme, configure_TopLevel
-from font_manager import get_tk_font
 
 __all__ = ["SplashScreen"]
 
@@ -52,6 +51,6 @@ class SplashScreen(ctk.CTkToplevel):
             self.PrgLoad.set(self.progress_val / 100)
             # flerken 1:
             # self.after(10, self.load_progress)
-            self.after(1, self.load_progress)
+            self.after(10, self.load_progress)
         else:
             self.master.start_app()

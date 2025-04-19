@@ -12,11 +12,11 @@ __all__ = ["register_all_fonts", "get_tk_font", "get_pillow_font"]
 # Dictionary with fonts used in FTR
 FONTS = {
     "Cambria": {
-        "file": os.path.join(fonts_dir, "cambria.ttf"),
+        "file": os.path.join(fonts_dir, "Cambria", "cambria.ttc"),
         "internal_name": "Cambria"
     },
     "Segoe UI": {
-        "file": os.path.join(fonts_dir, "segoeui.ttf"),
+        "file": os.path.join(fonts_dir, "Segoe UI", "segoeui.ttf"),
         "internal_name": "Segoe UI"
     }
 }

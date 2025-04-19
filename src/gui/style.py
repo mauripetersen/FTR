@@ -3,7 +3,7 @@ import customtkinter as ctk
 import json
 import os
 
-from config import FTR_NAME_0, fonts_dir, icon_dir, themes_dir
+from config import FTR_NAME_0, icon_dir, themes_dir
 
 __all__ = ["Theme", "configure_TopLevel"]
 
