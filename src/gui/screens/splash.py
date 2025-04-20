@@ -51,6 +51,6 @@ class SplashScreen(ctk.CTkToplevel):
             self.PrgLoad.set(self.progress_val / 100)
             # flerken 1:
             # self.after(10, self.load_progress)
-            self.after(10, self.load_progress)
+            self.after(1, self.load_progress)
         else:
             self.master.start_app()

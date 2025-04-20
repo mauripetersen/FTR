@@ -7,7 +7,7 @@ import math
 from config import FTR_NAME_0, LoadType, SupportType
 from project import Project, Section, Support, Node, Load
 from gui.style import Theme
-from font_manager import get_tk_font, get_pillow_font
+from font_manager import get_pillow_font
 
 __all__ = ["CADInterface"]
 
@@ -263,8 +263,7 @@ def generate_image_node(node: Node, clr: str) -> Image:
 
 
 def generate_image_load(load: Load, clr: str) -> Image:
-    # ImageDraw.ImageDraw.font = ImageFont.truetype(Font.SegoeUI_SB, 20)
-    ImageDraw.ImageDraw.font = get_pillow_font("Segoe UI", 20)
+    ImageDraw.ImageDraw.font = get_pillow_font("Segoe UI Semibold", 20)
     width = 2
 
     match load.type:

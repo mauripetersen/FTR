@@ -14,7 +14,7 @@ if __name__ == "__main__":
         ctk.set_widget_scaling(1 / scale_factor)
     except Exception as e:
         print(f"Falha ao detectar escala do sistema: {e}")
-
+        
     app = App()
     register_all_fonts()
     app.mainloop()

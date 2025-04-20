@@ -5,7 +5,7 @@ import json
 import os
 
 from config import __version__
-from config import SectionType, SupportType, LoadType
+from config import SectionType, SupportType
 from config import FTR_NAME_0, projects_dir
 
 __all__ = ["Project", "Section", "Support", "Node", "Load"]
@@ -20,7 +20,7 @@ class Project:
         self.loads: list[Load] = []
         self.metadata: dict[str, str] = self.get_metadata()
 
-        self.modified: bool = False
+        self.modified: bool = False  # flerken 2
         self.last_error: str | None = None
 
     def __str__(self):
@@ -231,34 +231,49 @@ class Node:
 
 
 class Load:
-    def __init__(self,
-                 load_type: LoadType | Literal["M", "PL", "UDL", "LVDL"],
-                 positions: list[float],
-                 values: list[float]):
-        self.type = load_type
-        self.positions = [float(pos) for pos in positions]
-        self.values = [float(val) for val in values]
-
+    def __init__(self):
         self.image = None
         self.canvas_id = None
-        self.imgDims = {LoadType.M: {"radius_point": 4, "radius": 50, "arrow_x": 15, "arrow_y": 15, "border": 30},
-                        LoadType.PL: {"height": 90, "arrow_x": 10, "arrow_y": 20, "border": 15},
-                        LoadType.UDL: {},
-                        LoadType.LVDL: {}}
-        self.bbox = {LoadType.M: {"radius_1": 8, "radius_2": 35, "radius_3": 65},
-                     LoadType.PL: {"border_x": 15, "border_y": 15},
-                     LoadType.UDL: {},
-                     LoadType.LVDL: {}}
 
         self.is_highlighted = False
         self.is_selected = False
 
+
+class PLLoad(Load):
+    def __init__(self, position: float, fx: float = 0.0, fy: float = 0.0, mz: float = 0.0):
+        super().__init__()
+        self.position = float(position)
+        self.fx = float(fx)
+        self.fy = float(fy)
+        self.mz = float(mz)
+
+        self.imgDims = {"Fx": {"height": 90, "arrow_x": 10, "arrow_y": 20, "border": 15},
+                        "Fy": "",
+                        "M": {"radius_point": 4, "radius": 50, "arrow_x": 15, "arrow_y": 15, "border": 30}}
+        self.bbox = {LoadType.M: {"radius_1": 8, "radius_2": 35, "radius_3": 65},
+                     LoadType.PL: {"border_x": 15, "border_y": 15}}
+
     def __str__(self):
-        return f"Load(type={self.type}, positions={self.positions}, values={self.values})"
+        return f"Load(type=PL, position={self.position}, fx={self.fx}, fy={self.fy}, mz={self.mz})"
 
     def to_dict(self):
         return {
-            "type": self.type,
-            "positions": self.positions,
-            "values": self.values
+            "type": "PL",
+            "position": self.position,
+            "fx": self.fx,
+            "fy": self.fy,
+            "mz": self.mz
+        }
+
+
+class DLLoad(Load):
+    def __init__(self, positions: list[float]):
+        super().__init__()
+        self.positions = [float(pos) for pos in positions]
+        self.values = [float(val) for val in values]
+        
+    def to_dict(self):
+        return {
+            "type": "DL",
+            "positions": self.positions
         }

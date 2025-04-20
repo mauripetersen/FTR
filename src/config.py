@@ -4,7 +4,7 @@ import os
 
 __version__ = "1.0.0"
 
-__all__ = ["SectionType", "SupportType", "LoadType",
+__all__ = ["SectionType", "SupportType",
            "base_dir",
            "assets_dir", "fonts_dir", "icon_dir", "images_dir",
            "configs_dir", "themes_dir", "projects_dir", "system_dir",
@@ -31,19 +31,6 @@ class SupportType(StrEnum):
     Roller = "roller"
     Pinned = "pinned"
     Fixed = "fixed"
-
-
-class LoadType(StrEnum):
-    """
-    "M" = Momentum
-    "PL" = Point Load
-    "UDL" = Uniformly Distributed Load
-    "LVDL" = Linearly Varying Distributed Load
-    """
-    M = "M"
-    PL = "PL"
-    UDL = "UDL"
-    LVDL = "LVDL"
 
 
 # Ensures base_dir for both cases (base_dir = "c:\FTR"):

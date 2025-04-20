@@ -3,11 +3,10 @@ import tkinter as tk
 import tkinter.font as tkFont
 import os
 from PIL import ImageFont
-from typing import Literal
 
 from config import fonts_dir
 
-__all__ = ["register_all_fonts", "get_tk_font", "get_pillow_font"]
+__all__ = ["register_all_fonts", "get_pillow_font"]
 
 # Dictionary with fonts used in FTR
 FONTS = {
@@ -18,6 +17,10 @@ FONTS = {
     "Segoe UI": {
         "file": os.path.join(fonts_dir, "Segoe UI", "segoeui.ttf"),
         "internal_name": "Segoe UI"
+    },
+    "Segoe UI Semibold": {
+        "file": os.path.join(fonts_dir, "Segoe UI", "segoeuisb.ttf"),
+        "internal_name": "Segoe UI Semibold"
     }
 }
 
@@ -41,17 +44,6 @@ def register_all_fonts():
     """Registers all fonts listed in the FONTS dictionary."""
     for key, font_data in FONTS.items():
         register_font(font_data["file"], font_data["internal_name"])
-
-
-def get_tk_font(name: str,
-                size: int = 12,
-                weight: Literal["normal", "bold"] = "normal",
-                slant: Literal["roman", "italic"] = "roman") -> tkFont.Font:
-    """Returns a tkFont.Font object for use in tkinter."""
-    if name not in FONTS:
-        raise KeyError(f'Fonte "{name}" não está registrada em FONTS.')
-    internal_name = FONTS[name]["internal_name"]
-    return tkFont.Font(family=internal_name, size=size, weight=weight, slant=slant)
 
 
 def get_pillow_font(name: str, size: int = 12):
