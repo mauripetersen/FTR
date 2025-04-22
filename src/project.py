@@ -1,14 +1,19 @@
+import tkinter as tk
 from tkinter import messagebox
 from typing import Literal
+from PIL import Image, ImageDraw, ImageTk
 import shutil
 import json
+import math
 import os
 
 from config import __version__
-from config import SectionType, SupportType
+from config import SectionType, SupportType, LoadType
 from config import FTR_NAME_0, projects_dir
+from gui.style import Theme
+from font_manager import get_pillow_font
 
-__all__ = ["Project", "Section", "Support", "Node", "Load"]
+__all__ = ["Project", "Section", "Support", "Node", "Load", "PLLoad", "DLLoad"]
 
 
 class Project:
@@ -80,7 +85,10 @@ class Project:
 
             self.loads = []
             for load in data["loads"]:
-                self.loads.append(Load(load["type"], load["positions"], load["values"]))
+                if load["type"] == LoadType.PL:
+                    self.loads.append(PLLoad(load["position"], load["Fx"], load["Fy"], load["Mz"]))
+                elif load["type"] == LoadType.DL:
+                    self.loads.append(DLLoad(load["start"], load["end"], load["q_start"], load["q_end"]))
 
             self.metadata = data["metadata"]
             self.modified = False  # flerken 2
@@ -187,16 +195,63 @@ class Section:
 class Support:
     def __init__(self,
                  support_type: SupportType | Literal["roller", "pinned", "fixed"],
-                 angle: float):
+                 angle: float,
+                 parent_node=None):
         self.type = support_type
         self.angle = float(angle)
+        self.parent_node = parent_node
 
-        self.image = None
-        self.canvas_id = None
+        self.image: ImageTk.PhotoImage | None = None
+        self.canvas_id: int | None = None
         self.imgDims = {"side": 60, "dy": 15}
 
     def __str__(self):
         return f"Support(type={self.type}, angle={self.angle})"
+
+    def generate_image(self, clr: str) -> Image:
+        side, dy = self.imgDims.values()
+
+        dx = side / 3
+        wi = 5 * dx
+        height = side * math.sqrt(3) / 2
+        width = 1
+
+        img = Image.new("RGBA", (int(wi), int(wi)))
+        dwg = ImageDraw.Draw(img)
+
+        match self.type:
+            case SupportType.Roller:
+                dwg.line((wi / 2, 0, 4 * dx, height), fill=clr, width=width)
+                dwg.line((wi / 2, 0, dx, height), fill=clr, width=width)
+                dwg.line((dx, height, 4 * dx, height), fill=clr, width=width)
+
+                dwg.line((0, height, wi, height), fill=clr, width=width)
+                dwg.line((0, height + dy, wi, height + dy), fill=clr, width=width)
+            case SupportType.Pinned:
+                dwg.line((wi / 2, 0, 4 * dx, height), fill=clr, width=width)
+                dwg.line((wi / 2, 0, dx, height), fill=clr, width=width)
+                dwg.line((dx, height, 4 * dx, height), fill=clr, width=width)
+
+                dwg.line((0, height, wi, height), fill=clr, width=width)
+                for k in range(5):
+                    dwg.line((k * dx, height + dy, (k + 1) * dx, height), fill=clr, width=width)
+            case SupportType.Fixed:
+                dwg.line((0, 0, wi, 0), fill=clr, width=width)
+                for k in range(5):
+                    dwg.line((k * dx, dy, (k + 1) * dx, 0), fill=clr, width=width)
+        return img
+
+    def update_image(self):
+        img = self.generate_image(Theme.CAD.supports)
+        self.image = ImageTk.PhotoImage(img)
+
+    def draw(self, canvas: tk.Canvas, to_screen):
+        if self.image is None:
+            return
+        if self.canvas_id:
+            canvas.delete(self.canvas_id)
+        pos = to_screen(self.parent_node.position, 0)
+        self.canvas_id = canvas.create_image(*pos, anchor="n", image=self.image)
 
     def to_dict(self):
         return {
@@ -211,17 +266,51 @@ class Node:
                  support: Support | None):
         self.position = float(position)
         self.support = support
+        if self.support:
+            self.support.parent_node = self
 
-        self.image = None
-        self.canvas_id = None
+        self.image: list[ImageTk.PhotoImage] | None = None
+        self.canvas_id: int | None = None
         self.imgDims = {"radius": 5, "border": 0}
-        self.bbox = {"radius_1": 15}
 
-        self.is_highlighted = False
-        self.is_selected = False
+        self.is_highlighted: bool = False
+        self.is_selected: bool = False
 
     def __str__(self):
         return f"Node(position={self.position}, support={self.support})"
+
+    def generate_image(self, clr: str) -> Image:
+        r, b = self.imgDims.values()
+
+        img = Image.new("RGBA", (2 * (r + b), 2 * (r + b)))
+        dwg = ImageDraw.Draw(img)
+
+        pc = (r + b, r + b)
+        dwg.circle(pc, radius=r, fill=clr, width=0)
+
+        return img
+
+    def update_image(self):
+        img0 = self.generate_image(Theme.CAD.nodes[0])
+        img1 = self.generate_image(Theme.CAD.nodes[1])
+        self.image = [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
+
+    def draw(self, canvas: tk.Canvas, to_screen):
+        if self.image is None:
+            return
+        pos = to_screen(self.position, 0)
+        img = self.image[1] if self.is_highlighted else self.image[0]
+        if self.canvas_id:
+            canvas.delete(self.canvas_id)
+        self.canvas_id = canvas.create_image(*pos, anchor="c", image=img)
+
+    def check_hover(self, event: tk.Event, to_screen) -> bool:
+        pos = to_screen(self.position, 0)
+        dx, dy = event.x - pos[0], pos[1] - event.y
+        d = math.sqrt(dx ** 2 + dy ** 2)
+        if d <= 15:
+            return True
+        return False
 
     def to_dict(self):
         return {
@@ -231,49 +320,227 @@ class Node:
 
 
 class Load:
-    def __init__(self):
-        self.image = None
-        self.canvas_id = None
+    def __init__(self, load_type: LoadType | Literal["PL", "DL"]):
+        self._type = load_type
 
-        self.is_highlighted = False
-        self.is_selected = False
+        self.image: list[ImageTk.PhotoImage] | None = None
+        self.canvas_id: int | None = None
+
+        self.is_highlighted: bool = False
+        self.is_selected: bool = False
+
+    @property
+    def type(self) -> LoadType | Literal["PL", "DL"]:
+        return self._type
+
+    def update_image(self):
+        raise NotImplementedError("Subclasse deve implementar update_image()")
+
+    def draw(self, canvas: tk.Canvas, to_screen):
+        raise NotImplementedError("Subclasse deve implementar draw()")
+
+    def check_hover(self, event: tk.Event, to_screen) -> bool:
+        raise NotImplementedError("Subclasse deve implementar check_hover()")
+
+    def to_dict(self):
+        raise NotImplementedError("Subclasse deve implementar to_dict()")
 
 
 class PLLoad(Load):
-    def __init__(self, position: float, fx: float = 0.0, fy: float = 0.0, mz: float = 0.0):
-        super().__init__()
+    def __init__(self,
+                 position: float,
+                 fx: float = 0.0,
+                 fy: float = 0.0,
+                 mz: float = 0.0):
+        super().__init__(load_type=LoadType.PL)
         self.position = float(position)
-        self.fx = float(fx)
-        self.fy = float(fy)
-        self.mz = float(mz)
+        self.Fx = float(fx)
+        self.Fy = float(fy)
+        self.Mz = float(mz)
 
-        self.imgDims = {"Fx": {"height": 90, "arrow_x": 10, "arrow_y": 20, "border": 15},
-                        "Fy": "",
-                        "M": {"radius_point": 4, "radius": 50, "arrow_x": 15, "arrow_y": 15, "border": 30}}
-        self.bbox = {LoadType.M: {"radius_1": 8, "radius_2": 35, "radius_3": 65},
-                     LoadType.PL: {"border_x": 15, "border_y": 15}}
+        self.imgDims = {"Fx": {"length": 90, "arrow_x": 20, "arrow_y": 10},
+                        "Fy": {"length": 90, "arrow_x": 10, "arrow_y": 20},
+                        "Mz": {"radius_point": 4, "radius": 50, "arrow_x": 15, "arrow_y": 15},
+                        "border": 30}
 
     def __str__(self):
-        return f"Load(type=PL, position={self.position}, fx={self.fx}, fy={self.fy}, mz={self.mz})"
+        return f"Load(type={self.type}, position={self.position}, Fx={self.Fx}, Fy={self.Fy}, Mz={self.Mz})"
+
+    def generate_image(self, clr: str) -> Image:
+        ImageDraw.ImageDraw.font = get_pillow_font("Segoe UI Semibold", 20)
+        width = 2
+
+        Fx_len, Fx_ax, Fx_ay = self.imgDims["Fx"].values()
+        Fy_len, Fy_ax, Fy_ay = self.imgDims["Fy"].values()
+        Mz_rPt, Mz_r, Mz_ax, Mz_ay = self.imgDims["Mz"].values()
+        border = self.imgDims["border"]
+
+        side = int(2 * (max(Fx_len, Fy_len, Mz_r) + border))
+        pc = (side / 2, side / 2)
+
+        img = Image.new("RGBA", (side, side))
+        dwg = ImageDraw.Draw(img)
+
+        if self.Fx != 0:
+            if self.Fx > 0:
+                p1 = (pc[0] - Fx_len, pc[1])
+                p2 = (pc[0] - Fx_ax, pc[1] - Fx_ay)
+                p3 = (pc[0] - Fx_ax, pc[1] + Fx_ay)
+                dwg.text((pc[0] - Fx_len / 2, pc[1] - 15), text=f"{self.Fx} kN", fill=clr, anchor="ms")
+            else:
+                p1 = (pc[0] + Fx_len, pc[1])
+                p2 = (pc[0] + Fx_ax, pc[1] - Fx_ay)
+                p3 = (pc[0] + Fx_ax, pc[1] + Fx_ay)
+                dwg.text((pc[0] + Fx_len / 2, pc[1] - 15), text=f"{self.Fx} kN", fill=clr, anchor="ms")
+
+            dwg.line((*pc, *p1), fill=clr, width=width)
+            dwg.line((*pc, *p2), fill=clr, width=width)
+            dwg.line((*pc, *p3), fill=clr, width=width)
+        if self.Fy != 0:
+            if self.Fy > 0:
+                p1 = (pc[0], pc[1] + Fy_len)
+                p2 = (pc[0] - Fy_ax, pc[1] + Fy_ay)
+                p3 = (pc[0] + Fy_ax, pc[1] + Fy_ay)
+                dwg.text((pc[0], pc[1] + Fy_len + 10), text=f"{self.Fy} kN", fill=clr, anchor="mt")
+            else:
+                p1 = (pc[0], pc[1] - Fy_len)
+                p2 = (pc[0] - Fy_ax, pc[1] - Fy_ay)
+                p3 = (pc[0] + Fy_ax, pc[1] - Fy_ay)
+                dwg.text((pc[0], pc[1] - Fy_len - 10), text=f"{self.Fy} kN", fill=clr, anchor="ms")
+
+            dwg.line((*pc, *p1), fill=clr, width=width)
+            dwg.line((*pc, *p2), fill=clr, width=width)
+            dwg.line((*pc, *p3), fill=clr, width=width)
+        if self.Mz != 0:
+            img_Mz = Image.new("RGBA", (2 * (Mz_r + border), 2 * (Mz_r + border)))
+            dwg_Mz = ImageDraw.Draw(img_Mz)
+
+            p0 = (border + Mz_r, border + Mz_r)
+            p1 = (border, border)
+            p2 = (2 * Mz_r + border, 2 * Mz_r + border)
+            pa1 = (2 * Mz_r + border, Mz_r + border)
+            if self.Mz > 0:
+                pa2 = (2 * Mz_r + border - Mz_ax, Mz_r + border + Mz_ay)
+                pa3 = (2 * Mz_r + border + Mz_ax, Mz_r + border + Mz_ay)
+                start = 0
+                end = 270
+                angle = -45
+            else:
+                pa2 = (2 * Mz_r + border - Mz_ax, Mz_r + border - Mz_ay)
+                pa3 = (2 * Mz_r + border + Mz_ax, Mz_r + border - Mz_ay)
+                start = 90
+                end = 360
+                angle = 45
+
+            dwg_Mz.circle(p0, radius=Mz_rPt, fill=clr, width=0)
+            dwg_Mz.arc((*p1, *p2), start=start, end=end, fill=clr, width=width)
+            dwg_Mz.line((*pa1, *pa2), fill=clr, width=width)
+            dwg_Mz.line((*pa1, *pa3), fill=clr, width=width)
+            img_Mz = img_Mz.rotate(angle=angle, resample=Image.Resampling.BICUBIC)
+
+            dwg_Mz = ImageDraw.Draw(img_Mz)
+            dwg_Mz.text((Mz_r + border, 0), text=f"{self.Mz} kN.m", fill=clr, anchor="mt")
+
+            pt_ins = int(pc[0] - img_Mz.width / 2), int(pc[1] - img_Mz.height / 2)
+            img.paste(img_Mz, pt_ins, mask=img_Mz)
+        return img
+
+    def update_image(self):
+        img0 = self.generate_image(Theme.CAD.loads[0])
+        img1 = self.generate_image(Theme.CAD.loads[1])
+        self.image = [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
+
+    def draw(self, canvas: tk.Canvas, to_screen):
+        if self.image is None:
+            return
+        img = self.image[1] if self.is_highlighted else self.image[0]
+
+        pos = to_screen(self.position, 0)
+        if self.canvas_id:
+            canvas.delete(self.canvas_id)
+        self.canvas_id = canvas.create_image(*pos, anchor="c", image=img)
+
+    def check_hover(self, event: tk.Event, to_screen) -> bool:
+        pos = to_screen(self.position, 0)
+        dx, dy = event.x - pos[0], pos[1] - event.y
+        border = 15
+
+        if self.Fx != 0:
+            length = self.imgDims["Fx"]["length"]
+            if self.Fx > 0:
+                x1, y1 = -length - border, -border
+                x2, y2 = border, border
+            else:
+                x1, y1 = - border, -border
+                x2, y2 = length + border, border
+            if x1 <= dx <= x2 and y1 <= dy <= y2:
+                return True
+        if self.Fy != 0:
+            length = self.imgDims["Fy"]["length"]
+            if self.Fy > 0:
+                x1, y1 = -border, -length - border
+                x2, y2 = border, border
+            else:
+                x1, y1 = -border, -border
+                x2, y2 = border, length + border
+            if x1 <= dx <= x2 and y1 <= dy <= y2:
+                return True
+        if self.Mz != 0:
+            d = math.sqrt(dx ** 2 + dy ** 2)
+            r1 = self.imgDims["Mz"]["radius_point"] + 4
+            r2 = self.imgDims["Mz"]["radius"] - border
+            r3 = self.imgDims["Mz"]["radius"] + border
+            if (d <= r1) or (r2 <= d <= r3):
+                return True
+        return False
 
     def to_dict(self):
         return {
-            "type": "PL",
+            "type": str(self.type),
             "position": self.position,
-            "fx": self.fx,
-            "fy": self.fy,
-            "mz": self.mz
+            "Fx": self.Fx,
+            "Fy": self.Fy,
+            "Mz": self.Mz
         }
 
 
 class DLLoad(Load):
-    def __init__(self, positions: list[float]):
-        super().__init__()
-        self.positions = [float(pos) for pos in positions]
-        self.values = [float(val) for val in values]
-        
+    def __init__(self,
+                 start: float,
+                 end: float,
+                 q_start: float,
+                 q_end: float):
+        super().__init__(load_type=LoadType.DL)
+        self.start = float(start)
+        self.end = float(end)
+        self.q_start = float(q_start)
+        self.q_end = float(q_end)
+
+        self.imgDims = {"length_1": 90, "length_2": 110, "arrow_x": 10, "arrow_y": 20, "border": 15}
+
+    def __str__(self):
+        return f"Load(type={self.type}, start={self.start}, end={self.end}, q_start={self.q_start}, q_end={self.q_end})"
+
+    def generate_image(self, clr: str) -> Image:
+        ...
+
+    def update_image(self):
+        ...
+
+    def draw(self, canvas: tk.Canvas, to_screen):
+        ...
+
+    def check_hover(self, event: tk.Event, to_screen) -> bool:
+        pos1 = to_screen(self.start, 0)
+        pos2 = to_screen(self.end, 0)
+
+        return False
+
     def to_dict(self):
         return {
-            "type": "DL",
-            "positions": self.positions
+            "type": str(self.type),
+            "start": self.start,
+            "end": self.end,
+            "q_start": self.q_start,
+            "q_end": self.q_end
         }

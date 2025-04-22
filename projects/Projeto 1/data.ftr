@@ -36,70 +36,53 @@
 	],
 	"loads": [
 		{
-			"type": "M",
-			"positions": [
-				2.5
-			],
-			"values": [
-				5.0
-			]
-		},
-		{
-			"type": "M",
-			"positions": [
-				7.0
-			],
-			"values": [
-				-5.0
-			]
+			"type": "PL",
+			"position": 2.5,
+			"Fx": 0.0,
+			"Fy": 0.0,
+			"Mz": 5.0
 		},
 		{
 			"type": "PL",
-			"positions": [
-				4.0
-			],
-			"values": [
-				-10.0
-			]
+			"position": 7.0,
+			"Fx": 0.0,
+			"Fy": 0.0,
+			"Mz": -5.0
 		},
 		{
 			"type": "PL",
-			"positions": [
-				9.0
-			],
-			"values": [
-				10.0
-			]
-		},
-		{
-			"type": "UDL",
-			"positions": [
-				5.0,
-				7.0
-			],
-			"values": [
-				-2.0
-			]
-		},
-		{
-			"type": "LVDL",
-			"positions": [
-				7.0,
-				9.0
-			],
-			"values": [
-				-2.0,
-				-4.0
-			]
+			"position": 4.0,
+			"Fx": 0.0,
+			"Fy": -10.0,
+			"Mz": 0.0
 		},
 		{
 			"type": "PL",
-			"positions": [
-				12.0
-			],
-			"values": [
-				-5.0
-			]
+			"position": 9.0,
+			"Fx": 0.0,
+			"Fy": 10.0,
+			"Mz": 0.0
+		},
+		{
+			"type": "PL",
+			"position": 12.0,
+			"Fx": 0.0,
+			"Fy": -5.0,
+			"Mz": 0.0
+		},
+		{
+			"type": "DL",
+			"start": 5.0,
+			"end": 7.0,
+			"q_start": -2.0,
+			"q_end": -2.0
+		},
+		{
+			"type": "DL",
+			"start": 7.0,
+			"end": 9.0,
+			"q_start": -2.0,
+			"q_end": -4.0
 		}
 	],
 	"metadata": {
