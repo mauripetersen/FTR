@@ -17,9 +17,10 @@ __all__ = ["Project", "Section", "Support", "Node", "Load", "PLLoad", "DLLoad"]
 
 
 class Project:
-    def __init__(self, project_name: str | None = None):
-        self.name: str | None = project_name
+    def __init__(self, project_name: str):
+        self.name: str = project_name
         self.elastic_modulus: float | None = None
+        self.fck: float | None = None
         self.section: Section | None = None
         self.nodes: list[Node] = []
         self.loads: list[Load] = []
@@ -32,6 +33,7 @@ class Project:
         res = f"Project(\n"
         res += f"\tname={self.name},\n"
         res += f"\telastic_modulus={self.elastic_modulus},\n"
+        res += f"\tfck={self.fck},\n"
         res += f"\tsection={self.section}\n"
         res += f"\tnodes=[\n"
         for node in self.nodes:
@@ -46,18 +48,16 @@ class Project:
 
         return res
 
-    def get_project_path(self, check: bool = False) -> str:
+    def get_project_path(self, check: bool = False) -> str | None:
         project_path = os.path.normpath(os.path.join(projects_dir, self.name))
-        if check:
-            if not (os.path.exists(project_path) and os.path.isdir(project_path)):
-                return ""
+        if check and not (os.path.exists(project_path) and os.path.isdir(project_path)):
+            return None
         return project_path
 
-    def get_data_path(self, check: bool = False) -> str:
+    def get_data_path(self, check: bool = False) -> str | None:
         data_path = os.path.normpath(os.path.join(self.get_project_path(), "data.ftr"))
-        if check:
-            if not (os.path.exists(data_path) and os.path.isfile(data_path)):
-                return ""
+        if check and not (os.path.exists(data_path) and os.path.isfile(data_path)):
+            return None
         return data_path
 
     def load_data(self) -> bool:
@@ -66,7 +66,8 @@ class Project:
             with open(data_path, "r") as f:
                 data = json.load(f)
 
-            self.elastic_modulus = data["elastic_modulus"]
+            self.elastic_modulus = data["elastic_modulus"]  # flerken: fazer verificações do E para tipo int ou None
+            self.fck = data["fck"]  # flerken: fazer verificações do fck para tipo float ou None
 
             sec = data["section"]
             if sec:
@@ -104,6 +105,7 @@ class Project:
             data_path = self.get_data_path()
 
             data = {"elastic_modulus": self.elastic_modulus,
+                    "fck": self.fck,
                     "section": self.section.to_dict() if self.section else None,
                     "nodes": [node.to_dict() for node in self.nodes],
                     "loads": [load.to_dict() for load in self.loads],
@@ -123,6 +125,7 @@ class Project:
             return False
 
     def create_new(self, ask_user: bool = True) -> bool:
+        """Creates the project folder."""
         try:
             if not self.name:
                 e = "Nome do projeto não definido."
@@ -136,11 +139,11 @@ class Project:
                     if not messagebox.askyesnocancel(FTR_NAME_0, "Já existe um projeto com este nome. Sobrescrever?"):
                         return False
                 self.delete()
-
             os.makedirs(project_path, exist_ok=True)
 
             # clear the variables:
             self.elastic_modulus = None
+            self.fck = None
             self.section = None
             self.nodes = []
             self.loads = []
@@ -168,6 +171,7 @@ class Project:
             return False
 
     def exists(self) -> bool:
+        """Checks if the project exists."""
         return os.path.isfile(self.get_data_path())
 
     @staticmethod
@@ -201,8 +205,6 @@ class Support:
         self.angle = float(angle)
         self.parent_node = parent_node
 
-        self.image: ImageTk.PhotoImage | None = None
-        self.canvas_id: int | None = None
         self.imgDims = {"side": 60, "dy": 15}
 
     def __str__(self):
@@ -241,17 +243,9 @@ class Support:
                     dwg.line((k * dx, dy, (k + 1) * dx, 0), fill=clr, width=width)
         return img
 
-    def update_image(self):
+    def update_image(self) -> list[ImageTk.PhotoImage]:
         img = self.generate_image(Theme.CAD.supports)
-        self.image = ImageTk.PhotoImage(img)
-
-    def draw(self, canvas: tk.Canvas, to_screen):
-        if self.image is None:
-            return
-        if self.canvas_id:
-            canvas.delete(self.canvas_id)
-        pos = to_screen(self.parent_node.position, 0)
-        self.canvas_id = canvas.create_image(*pos, anchor="n", image=self.image)
+        return [ImageTk.PhotoImage(img)]
 
     def to_dict(self):
         return {
@@ -269,8 +263,6 @@ class Node:
         if self.support:
             self.support.parent_node = self
 
-        self.image: list[ImageTk.PhotoImage] | None = None
-        self.canvas_id: int | None = None
         self.imgDims = {"radius": 5, "border": 0}
 
         self.is_highlighted: bool = False
@@ -290,19 +282,10 @@ class Node:
 
         return img
 
-    def update_image(self):
+    def update_image(self) -> list[ImageTk.PhotoImage]:
         img0 = self.generate_image(Theme.CAD.nodes[0])
         img1 = self.generate_image(Theme.CAD.nodes[1])
-        self.image = [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
-
-    def draw(self, canvas: tk.Canvas, to_screen):
-        if self.image is None:
-            return
-        pos = to_screen(self.position, 0)
-        img = self.image[1] if self.is_highlighted else self.image[0]
-        if self.canvas_id:
-            canvas.delete(self.canvas_id)
-        self.canvas_id = canvas.create_image(*pos, anchor="c", image=img)
+        return [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
 
     def check_hover(self, event: tk.Event, to_screen) -> bool:
         pos = to_screen(self.position, 0)
@@ -311,6 +294,14 @@ class Node:
         if d <= 15:
             return True
         return False
+
+    def select(self):
+        self.is_selected = True
+        self.is_highlighted = True
+
+    def deselect(self):
+        self.is_selected = False
+        self.is_highlighted = False
 
     def to_dict(self):
         return {
@@ -323,9 +314,6 @@ class Load:
     def __init__(self, load_type: LoadType | Literal["PL", "DL"]):
         self._type = load_type
 
-        self.image: list[ImageTk.PhotoImage] | None = None
-        self.canvas_id: int | None = None
-
         self.is_highlighted: bool = False
         self.is_selected: bool = False
 
@@ -333,17 +321,20 @@ class Load:
     def type(self) -> LoadType | Literal["PL", "DL"]:
         return self._type
 
-    def update_image(self):
-        raise NotImplementedError("Subclasse deve implementar update_image()")
-
-    def draw(self, canvas: tk.Canvas, to_screen):
-        raise NotImplementedError("Subclasse deve implementar draw()")
+    def update_image(self) -> list[ImageTk.PhotoImage]:
+        raise NotImplementedError("Subclass must implement update_image()")
 
     def check_hover(self, event: tk.Event, to_screen) -> bool:
-        raise NotImplementedError("Subclasse deve implementar check_hover()")
+        raise NotImplementedError("Subclass must implement check_hover()")
+
+    def select(self):
+        raise NotImplementedError("Subclass must implement select()")
+
+    def deselect(self):
+        raise NotImplementedError("Subclass must implement deselect()")
 
     def to_dict(self):
-        raise NotImplementedError("Subclasse deve implementar to_dict()")
+        raise NotImplementedError("Subclass must implement to_dict()")
 
 
 class PLLoad(Load):
@@ -445,20 +436,10 @@ class PLLoad(Load):
             img.paste(img_Mz, pt_ins, mask=img_Mz)
         return img
 
-    def update_image(self):
+    def update_image(self) -> list[ImageTk.PhotoImage]:
         img0 = self.generate_image(Theme.CAD.loads[0])
         img1 = self.generate_image(Theme.CAD.loads[1])
-        self.image = [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
-
-    def draw(self, canvas: tk.Canvas, to_screen):
-        if self.image is None:
-            return
-        img = self.image[1] if self.is_highlighted else self.image[0]
-
-        pos = to_screen(self.position, 0)
-        if self.canvas_id:
-            canvas.delete(self.canvas_id)
-        self.canvas_id = canvas.create_image(*pos, anchor="c", image=img)
+        return [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
 
     def check_hover(self, event: tk.Event, to_screen) -> bool:
         pos = to_screen(self.position, 0)
@@ -494,6 +475,14 @@ class PLLoad(Load):
                 return True
         return False
 
+    def select(self):
+        self.is_selected = True
+        self.is_highlighted = True
+
+    def deselect(self):
+        self.is_selected = False
+        self.is_highlighted = False
+
     def to_dict(self):
         return {
             "type": str(self.type),
@@ -524,10 +513,7 @@ class DLLoad(Load):
     def generate_image(self, clr: str) -> Image:
         ...
 
-    def update_image(self):
-        ...
-
-    def draw(self, canvas: tk.Canvas, to_screen):
+    def update_image(self) -> list[ImageTk.PhotoImage]:
         ...
 
     def check_hover(self, event: tk.Event, to_screen) -> bool:
@@ -535,6 +521,14 @@ class DLLoad(Load):
         pos2 = to_screen(self.end, 0)
 
         return False
+
+    def select(self):
+        self.is_selected = True
+        self.is_highlighted = True
+
+    def deselect(self):
+        self.is_selected = False
+        self.is_highlighted = False
 
     def to_dict(self):
         return {

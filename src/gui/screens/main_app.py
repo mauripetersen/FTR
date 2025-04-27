@@ -1,6 +1,9 @@
+import os.path
+
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
 
+from config import FTR_NAME_0, projects_dir
 from gui.style import Theme, configure_TopLevel
 from gui.layout import tab, ribbon, sidebar, statusbar, cad
 from project import Project
@@ -13,9 +16,12 @@ class MainScreen(ctk.CTkToplevel):
         super().__init__(master=master)
         configure_TopLevel(self)
 
-        # self.project = Project("Untitled")
-        self.project = Project("Projeto 1")
-        self.project.load_data()
+        # flerken 3: verificar estas definições de project (Untitled)
+        self.project = Project("Untitled")
+        if self.project.exists():
+            self.project.load_data()
+        else:
+            self.project.create_new(ask_user=False)
 
         # Tab (top menu)
         self.FrmTab = ctk.CTkFrame(self, fg_color=Theme.Tab.background, corner_radius=0)
@@ -43,8 +49,7 @@ class MainScreen(ctk.CTkToplevel):
         # Main graphical area (CAD)
         self.FrmCAD = ctk.CTkFrame(self, corner_radius=0)
         self.FrmCAD.pack(side="left", fill="both", expand=True)
-        self.cad_interface = cad.CADInterface(self, self.FrmCAD, self.project)
-        self.cad_interface.pack(fill="both", expand=True)
+        self.cad_interface: cad.CADInterface | None = None
 
         self.protocol("WM_DELETE_WINDOW", self.confirm_close)
 
@@ -56,9 +61,17 @@ class MainScreen(ctk.CTkToplevel):
             elif result:
                 if not self.project.save_data():
                     return
-        project_path = filedialog.askopenfile()
-        if project_path:
-            print(project_path)
+        project_path = filedialog.askdirectory(initialdir=projects_dir, mustexist=True, title="Escolha o Projeto")
+        project_name = os.path.basename(project_path)
+        if project_name:
+            # flerken 3: verificar estas definições de project
+            self.project = Project(project_name)
+            self.project.load_data()
+
+            self.cad_interface = cad.CADInterface(self, self.FrmCAD, self.project)
+            self.cad_interface.pack(fill="both", expand=True)
+
+            self.title(FTR_NAME_0 + f" ({project_name})")
 
     def confirm_close(self):
         if self.project.modified:

@@ -1,5 +1,6 @@
 {
 	"elastic_modulus": 210000,
+	"fck": 30.0,
 	"section": {
 		"type": "R",
 		"dims": {
