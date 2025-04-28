@@ -7,7 +7,8 @@ __version__ = "1.0.0"
 __all__ = ["SectionType", "SupportType", "LoadType",
            "base_dir",
            "assets_dir", "fonts_dir", "icon_dir", "images_dir",
-           "configs_dir", "themes_dir", "projects_dir", "system_dir",
+           "configs_dir", "languages_dir", "themes_dir",
+           "projects_dir", "system_dir",
            "FTR_NAME_0", "FTR_NAME_1", "FTR_NAME_2", "__version__"]
 
 
@@ -55,7 +56,9 @@ icon_dir: str = os.path.join(assets_dir, "icon")
 images_dir: str = os.path.join(assets_dir, "images")
 
 configs_dir: str = os.path.join(base_dir, "configs")
+languages_dir: str = os.path.join(configs_dir, "languages")
 themes_dir: str = os.path.join(configs_dir, "themes")
+
 projects_dir: str = os.path.join(base_dir, "projects")
 system_dir: str = os.path.join(base_dir, "system")
 

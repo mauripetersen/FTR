@@ -7,6 +7,7 @@ from config import FTR_NAME_0, projects_dir
 from gui.style import Theme, configure_TopLevel
 from gui.layout import tab, ribbon, sidebar, statusbar, cad
 from project import Project
+from language_manager import lang
 
 __all__ = ["MainScreen"]
 
@@ -55,13 +56,15 @@ class MainScreen(ctk.CTkToplevel):
 
     def open_project(self):
         if self.project.modified:
-            result = messagebox.askyesnocancel("Projeto não salvo", "Deseja salvar antes de abrir outro projeto?")
+            result = messagebox.askyesnocancel(lang.get('project_not_saved'),
+                                               lang.get('quest', 'save_before_open_project'))
             if result is None:
                 return
             elif result:
                 if not self.project.save_data():
                     return
-        project_path = filedialog.askdirectory(initialdir=projects_dir, mustexist=True, title="Escolha o Projeto")
+        project_path = filedialog.askdirectory(initialdir=projects_dir, mustexist=True,
+                                               title=lang.get('choose_project'))
         project_name = os.path.basename(project_path)
         if project_name:
             # flerken 3: verificar estas definições de project
@@ -75,7 +78,7 @@ class MainScreen(ctk.CTkToplevel):
 
     def confirm_close(self):
         if self.project.modified:
-            result = messagebox.askyesnocancel("Projeto não salvo", "Deseja salvar antes de fechar?")
+            result = messagebox.askyesnocancel(lang.get('project_not_saved'), lang.get('quest', 'save_before_close'))
             if result is None:
                 return
             elif result:

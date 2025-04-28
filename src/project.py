@@ -12,6 +12,7 @@ from config import SectionType, SupportType, LoadType
 from config import FTR_NAME_0, projects_dir
 from gui.style import Theme
 from font_manager import get_pillow_font
+from language_manager import lang
 
 __all__ = ["Project", "Section", "Support", "Node", "Load", "PLLoad", "DLLoad"]
 
@@ -96,7 +97,7 @@ class Project:
 
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"ERRO ao carregar o arquivo de dados: {e}")
+            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'load_data_file')}: {e}")
             self.last_error = str(e)
             return False
 
@@ -120,7 +121,7 @@ class Project:
 
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"ERRO ao salvar o arquivo de dados: {e}")
+            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'save_data_file')}: {e}")
             self.last_error = str(e)
             return False
 
@@ -128,7 +129,7 @@ class Project:
         """Creates the project folder."""
         try:
             if not self.name:
-                e = "Nome do projeto não definido."
+                e = lang.get('error', 'project_name')
                 messagebox.showerror(FTR_NAME_0, f"ERRO: {e}")
                 self.last_error = str(e)
                 return False
@@ -136,7 +137,7 @@ class Project:
             project_path = self.get_project_path()
             if os.path.exists(project_path) and os.path.isdir(project_path):
                 if ask_user:
-                    if not messagebox.askyesnocancel(FTR_NAME_0, "Já existe um projeto com este nome. Sobrescrever?"):
+                    if not messagebox.askyesnocancel(FTR_NAME_0, lang.get('quest', 'existing_project')):
                         return False
                 self.delete()
             os.makedirs(project_path, exist_ok=True)
@@ -153,7 +154,7 @@ class Project:
             self.save_data()
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"ERRO ao criar novo projeto: {e}")
+            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'create_project')}: {e}")
             self.last_error = str(e)
             return False
 
@@ -161,12 +162,12 @@ class Project:
         try:
             res = True
             if ask_user:
-                res = messagebox.askyesnocancel(FTR_NAME_0, "Tem certeza que deseja excluir o projeto?")
+                res = messagebox.askyesnocancel(FTR_NAME_0, lang.get('quest', 'delete_project'))
             if res:
                 shutil.rmtree(self.get_project_path())
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"ERRO ao deletar o projeto: {e}")
+            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'delete_project')}: {e}")
             self.last_error = str(e)
             return False
 

@@ -1,0 +1,26 @@
+{
+    "file": "Arquivo",
+	"tools": "Ferramentas",
+	"new_project": "Novo Projeto",
+    "open_project": "Abrir Projeto",
+    "save_project": "Salvar Projeto",
+	"exit": "Sair",
+	"project_not_saved": "Projeto não salvo",
+	"choose_project": "Escolha o Projeto",
+	"error": {
+		"detect_scale": "Falha ao detectar a escala do sistema",
+		"load_image": "Erro ao carregar imagem",
+		"load_data_file": "Erro ao carregar o arquivo de dados",
+		"save_data_file": "Erro ao salvar o arquivo de dados",
+		"project_name": "Nome do projeto não definido",
+		"create_project": "Erro ao criar novo projeto",
+		"delete_project": "Erro ao deletar o projeto",
+		"draw_canvas": "Erro ao desenhar o canvas"
+	},
+	"quest": {
+		"existing_project": "Já existe um projeto com este nome. Deseja sobrescrever?",
+		"delete_project": "Tem certeza que deseja excluir o projeto?",
+		"save_before_open_project": "Deseja salvar antes de abrir outro projeto?",
+		"save_before_close": "Deseja salvar antes de fechar?"
+	}
+}

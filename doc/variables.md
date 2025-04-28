@@ -4,15 +4,23 @@ _**by: Maurício Petersen Pithon**_
 
 ----
 
-### Types of loads:
+### Section Types:
 
-- "M" = Moment
+- "R" = Rectangle
+- "I" = I-shape
+- "T" = T-shape
+
+----
+
+### Support Types:
+
+- "roller" = 2 degrees of freedom
+- "pinned" = 1 degree of freedom
+- "fixed" = 0 degrees of freedom
+
+----
+
+### Load Types:
+
 - "PL" = Point Load
-- "UDL" = Uniformly Distributed Load
-- "LVDL" = Linearly Varying Distributed Load
-
-----
-
-### ...
-
-----
+- "DL" = Distributed Load

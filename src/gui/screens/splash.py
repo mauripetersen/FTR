@@ -5,6 +5,7 @@ import os
 
 from config import FTR_NAME_1, FTR_NAME_2, images_dir
 from gui.style import Theme, configure_TopLevel
+from language_manager import lang
 
 __all__ = ["SplashScreen"]
 
@@ -26,7 +27,7 @@ class SplashScreen(ctk.CTkToplevel):
             self.canvas.create_image(240, self.size[1] / 2 - 30, image=logo_imgTk)
             self.logo_img = logo_imgTk
         except Exception as e:
-            print(f"Erro ao carregar imagem: {e}")
+            print(f"{lang.get('error', 'load_image')}: {e}")
 
         self.canvas.create_text(420, 190, text=FTR_NAME_1, font=("Cambria", 62, "bold"), anchor="w",
                                 fill=Theme.headline)

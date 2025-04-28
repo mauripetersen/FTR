@@ -1,6 +1,7 @@
 import customtkinter as ctk
 
 from gui.style import Theme
+from language_manager import lang
 
 __all__ = ["create_tab"]
 
@@ -8,7 +9,7 @@ __all__ = ["create_tab"]
 def create_tab(app, master):
     master.active_menu = None
 
-    BtnFile = ctk.CTkButton(master, text="Arquivo",
+    BtnFile = ctk.CTkButton(master, text=lang.get('file'),
                             fg_color="transparent", hover_color=Theme.Tab.highlight,
                             font=("Segoe UI", 14),
                             text_color=Theme.Tab.text, corner_radius=0, width=80)
@@ -19,16 +20,16 @@ def create_tab(app, master):
         master=master,
         master_button=BtnFile,
         options=[
-            ("Novo Projeto", lambda: print("Novo projeto")),
-            ("Abrir Projeto", app.open_project),
-            ("Salvar", lambda: print("Salvar")),
+            (lang.get('new_project'), lambda: print("Novo projeto")),
+            (lang.get('open_project'), app.open_project),
+            (lang.get('save_project'), lambda: print("Salvar Projeto")),
             ("---", None),
-            ("Sair", app.quit)
+            (lang.get('exit'), app.quit)
         ]
     )
     BtnFile.configure(command=MnuFile_toggle)
 
-    BtnTools = ctk.CTkButton(master, text="Ferramentas",
+    BtnTools = ctk.CTkButton(master, text=lang.get('tools'),
                              fg_color="transparent", hover_color=Theme.Tab.highlight,
                              font=("Segoe UI", 14),
                              text_color=Theme.Tab.text, corner_radius=0, width=100)

@@ -8,6 +8,7 @@ import copy
 from config import FTR_NAME_0, LoadType, SupportType
 from project import Project, Section, Support, Node, Load, PLLoad, DLLoad
 from gui.style import Theme
+from language_manager import lang
 
 __all__ = ["CADInterface"]
 
@@ -352,7 +353,7 @@ class CADInterface(ctk.CTkFrame):
                 self.draw_element(node)
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"ERRO ao desenhar o canvas: {e}")
+            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'draw_canvas')}: {e}")
             self.project.last_error = str(e)
             return False
 

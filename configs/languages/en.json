@@ -1,0 +1,26 @@
+{
+    "file": "File",
+	"tools": "Tools",
+	"new_project": "New Project",
+    "open_project": "Open Project",
+    "save_project": "Save Project",
+	"exit": "Exit",
+	"project_not_saved": "Project not saved",
+	"choose_project": "Choose the Project",
+	"error": {
+		"detect_scale": "Failed to detect system scale",
+		"load_image": "Error loading image",
+		"load_data_file": "Error loading data file",
+		"save_data_file": "Error saving data file",
+		"project_name": "Project name not defined",
+		"create_project": "Error creating new project",
+		"delete_project": "Error deleting project",
+		"draw_canvas": "Error drawing canvas"
+	},
+	"quest": {
+		"existing_project": "A project with this name already exists. Do you want to overwrite it?",
+		"delete_project": "Are you sure you want to delete the project?",
+		"save_before_open_project": "Do you want to save before opening another project?",
+		"save_before_close": "Do you want to save before closing?"
+	}
+}
