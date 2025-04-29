@@ -24,7 +24,7 @@ def create_tab(app, master):
             (lang.get('open_project'), app.open_project),
             (lang.get('save_project'), lambda: print("Salvar Projeto")),
             ("---", None),
-            (lang.get('exit'), app.quit)
+            (lang.get('exit'), app.confirm_close)
         ]
     )
     BtnFile.configure(command=MnuFile_toggle)

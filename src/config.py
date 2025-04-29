@@ -15,7 +15,9 @@ __all__ = ["SectionType", "SupportType", "LoadType",
 class SectionType(StrEnum):
     """
     "R" = Rectangle
+
     "I" = I-shape
+
     "T" = T-shape
     """
     R = "R"
@@ -26,7 +28,9 @@ class SectionType(StrEnum):
 class SupportType(StrEnum):
     """
     "roller" = 2 degrees of freedom
+
     "pinned" = 1 degree of freedom
+
     "fixed" = 0 degrees of freedom
     """
     Roller = "roller"
@@ -37,6 +41,7 @@ class SupportType(StrEnum):
 class LoadType(StrEnum):
     """
     "PL" = Point Load
+
     "DL" = Distributed Load
     """
     PL = "PL"

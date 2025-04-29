@@ -5,6 +5,7 @@
     "open_project": "Open Project",
     "save_project": "Save Project",
 	"exit": "Exit",
+	"grid": "Grid",
 	"project_not_saved": "Project not saved",
 	"choose_project": "Choose the Project",
 	"error": {

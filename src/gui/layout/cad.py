@@ -230,10 +230,13 @@ class CADInterface(ctk.CTkFrame):
             if element.support:
                 self.canvas.delete(self.canvas_id[element.support])
             self.canvas.delete(self.canvas_id[element])
+            self.project.modified = True
         elif isinstance(element, PLLoad):
             self.project.loads.remove(element)
             self.canvas.delete(self.canvas_id[element])
+            self.project.modified = True
         elif isinstance(element, DLLoad):
+            self.project.modified = True
             ...
 
     def delete_selected(self):
@@ -297,8 +300,10 @@ class CADInterface(ctk.CTkFrame):
             self.canvas_id[element] = self.canvas.create_image(*pos, anchor="c", image=img)
         elif isinstance(element, DLLoad):
             ...
-
+        
     def draw_canvas(self) -> bool:
+        if not self.project:
+            self.destroy()
         try:
             for g in self.image_garbage:
                 self.canvas.delete(g)

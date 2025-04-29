@@ -17,13 +17,6 @@ class MainScreen(ctk.CTkToplevel):
         super().__init__(master=master)
         configure_TopLevel(self)
 
-        # flerken 3: verificar estas definições de project (Untitled)
-        self.project = Project("Untitled")
-        if self.project.exists():
-            self.project.load_data()
-        else:
-            self.project.create_new(ask_user=False)
-
         # Tab (top menu)
         self.FrmTab = ctk.CTkFrame(self, fg_color=Theme.Tab.background, corner_radius=0)
         self.FrmTab.pack(side="top", fill="x")
@@ -50,38 +43,53 @@ class MainScreen(ctk.CTkToplevel):
         # Main graphical area (CAD)
         self.FrmCAD = ctk.CTkFrame(self, corner_radius=0)
         self.FrmCAD.pack(side="left", fill="both", expand=True)
+
+        self.project: Project | None = Project("Untitled")
         self.cad_interface: cad.CADInterface | None = None
+
+        if self.project.exists():
+            self.project.load_data()
+        else:
+            self.project.create_new(ask_user=False)
+        self.create_cad_interface()
 
         self.protocol("WM_DELETE_WINDOW", self.confirm_close)
 
+    def create_cad_interface(self):
+        if self.project:
+            self.cad_interface = cad.CADInterface(self, self.FrmCAD, self.project)
+            self.cad_interface.pack(fill="both", expand=True)
+            self.title(f"{FTR_NAME_0} ({self.project.name})")
+
     def open_project(self):
-        if self.project.modified:
+        if self.project and self.project.modified:
             result = messagebox.askyesnocancel(lang.get('project_not_saved'),
                                                lang.get('quest', 'save_before_open_project'))
             if result is None:
                 return
             elif result:
-                if not self.project.save_data():
-                    return
+                self.project.save_data()
+
         project_path = filedialog.askdirectory(initialdir=projects_dir, mustexist=True,
                                                title=lang.get('choose_project'))
         project_name = os.path.basename(project_path)
         if project_name:
-            # flerken 3: verificar estas definições de project
+            self.close_project()
             self.project = Project(project_name)
             self.project.load_data()
+            self.create_cad_interface()
 
-            self.cad_interface = cad.CADInterface(self, self.FrmCAD, self.project)
-            self.cad_interface.pack(fill="both", expand=True)
-
-            self.title(FTR_NAME_0 + f" ({project_name})")
-
+    def close_project(self):
+        self.cad_interface.pack_forget()  # flerken (é necessário?)
+        self.cad_interface.destroy()
+        self.cad_interface = None
+        self.project = None
+        
     def confirm_close(self):
-        if self.project.modified:
+        if self.project and self.project.modified:
             result = messagebox.askyesnocancel(lang.get('project_not_saved'), lang.get('quest', 'save_before_close'))
             if result is None:
                 return
             elif result:
-                if not self.project.save_data():
-                    return
+                self.project.save_data()
         self.master.destroy()
