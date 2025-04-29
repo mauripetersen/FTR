@@ -2,8 +2,8 @@ import customtkinter as ctk
 import ctypes
 
 from gui.app import App
-from font_manager import register_all_fonts
-from language_manager import lang
+from manager.font import register_all_fonts
+from manager.language import lang
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("Dark")

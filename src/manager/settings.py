@@ -3,10 +3,10 @@ import os
 
 from config import configs_dir
 
-__all__ = ["configs_manager"]
+__all__ = ["settings"]
 
 
-class ConfigsManager:
+class SettingsManager:
     def __init__(self):
         self.path = os.path.join(configs_dir, "configs.json")
         self.configs = {}
@@ -42,4 +42,4 @@ class ConfigsManager:
 
 
 # Instância global:
-configs_manager = ConfigsManager()
+settings = SettingsManager()

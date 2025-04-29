@@ -11,8 +11,8 @@
 	"error": {
 		"detect_scale": "Falha ao detectar a escala do sistema",
 		"load_image": "Erro ao carregar imagem",
-		"load_data_file": "Erro ao carregar o arquivo de dados",
-		"save_data_file": "Erro ao salvar o arquivo de dados",
+		"load_data": "Erro ao carregar os dados do projeto",
+		"save_data": "Erro ao salvar os dados do projeto",
 		"project_name": "Nome do projeto não definido",
 		"create_project": "Erro ao criar novo projeto",
 		"delete_project": "Erro ao deletar o projeto",

@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 from typing import Literal
 from PIL import Image, ImageDraw, ImageTk
-import shutil
 import json
 import math
 import os
@@ -11,8 +10,8 @@ from config import __version__
 from config import SectionType, SupportType, LoadType
 from config import FTR_NAME_0, projects_dir
 from gui.style import Theme
-from font_manager import get_pillow_font
-from language_manager import lang
+from manager.font import get_pillow_font
+from manager.language import lang
 
 __all__ = ["Project", "Section", "Support", "Node", "Load", "PLLoad", "DLLoad"]
 
@@ -27,7 +26,7 @@ class Project:
         self.loads: list[Load] = []
         self.metadata: dict[str, str] = self.get_metadata()
 
-        self.modified: bool = False  # flerken 2
+        self.modified: bool = False
         self.last_error: str | None = None
 
     def __str__(self):
@@ -49,22 +48,17 @@ class Project:
 
         return res
 
-    def get_project_path(self, check: bool = False) -> str | None:
-        project_path = os.path.normpath(os.path.join(projects_dir, self.name))
-        if check and not (os.path.exists(project_path) and os.path.isdir(project_path)):
+    def get_path(self, check: bool = False) -> str | None:
+        project_path = os.path.normpath(os.path.join(projects_dir, self.name + ".ftr"))
+        if check and not (os.path.exists(project_path) and os.path.isfile(project_path)):
             return None
         return project_path
 
-    def get_data_path(self, check: bool = False) -> str | None:
-        data_path = os.path.normpath(os.path.join(self.get_project_path(), "data.ftr"))
-        if check and not (os.path.exists(data_path) and os.path.isfile(data_path)):
-            return None
-        return data_path
-
     def load_data(self) -> bool:
-        data_path = self.get_data_path()
+        """Load the project data."""
+        project_path = self.get_path()
         try:
-            with open(data_path, "r") as f:
+            with open(project_path, "r") as f:
                 data = json.load(f)
 
             self.elastic_modulus = data["elastic_modulus"]  # flerken: fazer verificações do E para tipo int ou None
@@ -93,40 +87,34 @@ class Project:
                     self.loads.append(DLLoad(load["start"], load["end"], load["q_start"], load["q_end"]))
 
             self.metadata = data["metadata"]
-            self.modified = False  # flerken 2
 
+            self.modified = False
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'load_data_file')}: {e}")
+            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'load_data')}: {e}")
             self.last_error = str(e)
             return False
 
     def save_data(self) -> bool:
+        """Saves the project data."""
         try:
-            data_path = self.get_data_path()
+            project_path = self.get_path()
 
-            data = {"elastic_modulus": self.elastic_modulus,
-                    "fck": self.fck,
-                    "section": self.section.to_dict() if self.section else None,
-                    "nodes": [node.to_dict() for node in self.nodes],
-                    "loads": [load.to_dict() for load in self.loads],
-                    "metadata": self.metadata}
-
+            data = self.to_dict()
             json_str = json.dumps(data, indent=4)
             json_str_with_tabs = json_str.replace("    ", "\t")
-            with open(data_path, "w") as f:
+            with open(project_path, "w") as f:
                 f.write(json_str_with_tabs)
 
-            self.modified = False  # flerken 2
-
+            self.modified = False
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'save_data_file')}: {e}")
+            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'save_data')}: {e}")
             self.last_error = str(e)
             return False
 
-    def create_new(self, ask_user: bool = True) -> bool:
-        """Creates the project folder."""
+    def create(self, ask_user: bool = True) -> bool:
+        """Create a new and empty project."""
         try:
             if not self.name:
                 e = lang.get('error', 'project_name')
@@ -134,13 +122,12 @@ class Project:
                 self.last_error = str(e)
                 return False
 
-            project_path = self.get_project_path()
-            if os.path.exists(project_path) and os.path.isdir(project_path):
+            project_path = self.get_path()
+            if os.path.exists(project_path) and os.path.isfile(project_path):
                 if ask_user:
                     if not messagebox.askyesnocancel(FTR_NAME_0, lang.get('quest', 'existing_project')):
                         return False
                 self.delete()
-            os.makedirs(project_path, exist_ok=True)
 
             # clear the variables:
             self.elastic_modulus = None
@@ -149,6 +136,7 @@ class Project:
             self.nodes = []
             self.loads = []
             self.metadata = self.get_metadata()
+            self.modified = False
             self.last_error = None
 
             self.save_data()
@@ -159,13 +147,14 @@ class Project:
             return False
 
     def delete(self, ask_user: bool = False) -> bool:
+        """Delete the project file."""
         try:
-            res = True
-            if ask_user:
-                res = messagebox.askyesnocancel(FTR_NAME_0, lang.get('quest', 'delete_project'))
-            if res:
-                shutil.rmtree(self.get_project_path())
-            return True
+            if ask_user and messagebox.askyesnocancel(FTR_NAME_0, lang.get('quest', 'delete_project')):
+                return False
+            if self.exists():
+                os.remove(self.get_path())
+                return True
+            return False
         except Exception as e:
             messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'delete_project')}: {e}")
             self.last_error = str(e)
@@ -173,11 +162,22 @@ class Project:
 
     def exists(self) -> bool:
         """Checks if the project exists."""
-        return os.path.isfile(self.get_data_path())
+        project_path = self.get_path()
+        return os.path.exists(project_path) and os.path.isfile(project_path)
 
     @staticmethod
     def get_metadata() -> dict[str, str]:
         return {"created_by": "FTR", "version": __version__}
+
+    def to_dict(self) -> dict:
+        return {
+            "elastic_modulus": self.elastic_modulus,
+            "fck": self.fck,
+            "section": self.section.to_dict() if self.section else None,
+            "nodes": [node.to_dict() for node in self.nodes],
+            "loads": [load.to_dict() for load in self.loads],
+            "metadata": self.metadata
+        }
 
 
 class Section:
@@ -190,7 +190,7 @@ class Section:
     def __str__(self):
         return f"Section(type={self.type}, dims={self.dims})"
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "type": self.type,
             "dims": self.dims
@@ -248,7 +248,7 @@ class Support:
         img = self.generate_image(Theme.CAD.supports)
         return [ImageTk.PhotoImage(img)]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "type": str(self.type),
             "angle": self.angle
@@ -304,7 +304,7 @@ class Node:
         self.is_selected = False
         self.is_highlighted = False
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "position": self.position,
             "support": self.support.to_dict() if self.support else None
@@ -334,7 +334,7 @@ class Load:
     def deselect(self):
         raise NotImplementedError("Subclass must implement deselect()")
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         raise NotImplementedError("Subclass must implement to_dict()")
 
 
@@ -484,7 +484,7 @@ class PLLoad(Load):
         self.is_selected = False
         self.is_highlighted = False
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "type": str(self.type),
             "position": self.position,
@@ -531,7 +531,7 @@ class DLLoad(Load):
         self.is_selected = False
         self.is_highlighted = False
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "type": str(self.type),
             "start": self.start,

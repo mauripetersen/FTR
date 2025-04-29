@@ -2,7 +2,7 @@ import json
 import os
 
 from config import languages_dir
-from configs_manager import configs_manager
+from manager.settings import settings
 
 __all__ = ["lang"]
 
@@ -28,10 +28,10 @@ class LanguageManager:
 
     def get(self, key1: str, key2: str | None = None) -> str:
         if key2:
-            return self.translations.get(key1).get(key2)
+            return self.translations.get(key1).get(key2, key2)  # If not found, returns the key2 itself
         else:
             return self.translations.get(key1, key1)  # If not found, returns the key1 itself
 
 
 # Instância global:
-lang = LanguageManager(language=configs_manager.get(key="language", default="pt"))
+lang = LanguageManager(language=settings.get(key="language", default="pt"))

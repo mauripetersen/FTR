@@ -11,8 +11,8 @@
 	"error": {
 		"detect_scale": "Failed to detect system scale",
 		"load_image": "Error loading image",
-		"load_data_file": "Error loading data file",
-		"save_data_file": "Error saving data file",
+		"load_data": "Error loading project data",
+		"save_data": "Error saving project data",
 		"project_name": "Project name not defined",
 		"create_project": "Error creating new project",
 		"delete_project": "Error deleting project",

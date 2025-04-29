@@ -8,7 +8,7 @@ import copy
 from config import FTR_NAME_0, LoadType, SupportType
 from project import Project, Section, Support, Node, Load, PLLoad, DLLoad
 from gui.style import Theme
-from language_manager import lang
+from manager.language import lang
 
 __all__ = ["CADInterface"]
 
@@ -20,7 +20,6 @@ class CADInterface(ctk.CTkFrame):
         self.project = project
         self.historical: list[Project] = []
         self.historical_ix: int = -1
-        self.save_history()
 
         self.canvas = tk.Canvas(self, bg=Theme.CAD.background, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
@@ -34,7 +33,7 @@ class CADInterface(ctk.CTkFrame):
         self.image_cache: dict[Support | Node | Load, list[ImageTk.PhotoImage]] = {}
         self.canvas_id: dict[Support | Node | Load, int | None] = {}
         self.image_garbage: list[int] = []
-
+        
         self.select_rect = None
         self.select_rect_start = None
         self.pan_start = None
@@ -58,14 +57,13 @@ class CADInterface(ctk.CTkFrame):
         self.update_all_images()
 
         self.after(200, self.draw_canvas)
+        self.after(300, self.save_history)
 
     def on_escape(self, event):
         self.deselect_all()
-        self.draw_canvas()
 
     def on_ctrl_a(self, event):
         self.select_all()
-        self.draw_canvas()
 
     def on_ctrl_o(self, event):
         self.app.open_project()
@@ -101,7 +99,7 @@ class CADInterface(ctk.CTkFrame):
     def mouse_down_left(self, event):
         # event.state: 8 = Normal | 9 = Shift | 12 = Ctrl
         if event.state not in [9, 12]:
-            self.deselect_all()
+            self.deselect_all(flag_draw_canvas=False)
         nearest = self.get_nearest(event)
         if nearest:
             if event.state == 9:
@@ -212,17 +210,21 @@ class CADInterface(ctk.CTkFrame):
         return [*[node for node in self.project.nodes if node.is_selected],
                 *[load for load in self.project.loads if load.is_selected]]
 
-    def select_all(self):
+    def select_all(self, flag_draw_canvas=True):
         for node in self.project.nodes:
             node.select()
         for load in self.project.loads:
             load.select()
+        if flag_draw_canvas:
+            self.draw_canvas()
 
-    def deselect_all(self):
+    def deselect_all(self, flag_draw_canvas=True):
         for node in self.project.nodes:
             node.deselect()
         for load in self.project.loads:
             load.deselect()
+        if flag_draw_canvas:
+            self.draw_canvas()
 
     def delete_element(self, element: Node | Load):
         if isinstance(element, Node):
@@ -239,14 +241,15 @@ class CADInterface(ctk.CTkFrame):
             self.project.modified = True
             ...
 
-    def delete_selected(self):
+    def delete_selected(self, flag_draw_canvas=True):
         selected_list = self.get_selected()
         if selected_list:
+            self.save_history()
             for selected in selected_list:
                 self.delete_element(selected)
             self.check_integrity()
-            self.save_history()
-            self.draw_canvas()
+            if flag_draw_canvas:
+                self.draw_canvas()
 
     def undo(self):
         if self.historical_ix > 0:

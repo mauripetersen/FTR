@@ -5,7 +5,7 @@ import os
 
 from config import FTR_NAME_1, FTR_NAME_2, images_dir
 from gui.style import Theme, configure_TopLevel
-from language_manager import lang
+from manager.language import lang
 
 __all__ = ["SplashScreen"]
 

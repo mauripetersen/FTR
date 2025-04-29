@@ -31,5 +31,5 @@ class Beam:
 
     def calculate(self):
         # Aqui você chamaria métodos do solver.py
-        from .solver import calculate_reactions
+        # from .solver import calculate_reactions
         return calculate_reactions(self)

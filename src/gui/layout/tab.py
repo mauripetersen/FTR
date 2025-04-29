@@ -1,7 +1,7 @@
 import customtkinter as ctk
 
 from gui.style import Theme
-from language_manager import lang
+from manager.language import lang
 
 __all__ = ["create_tab"]
 
