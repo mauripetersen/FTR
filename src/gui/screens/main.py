@@ -85,9 +85,9 @@ class MainScreen(ctk.CTkToplevel):
             return
         if self.close_project(message=lang.get('quest', 'save_before_open_project')):
             self.project = Project(project_path)
-            self.project.load_data()
-            self.create_cad_interface()
-            self.after(100, self.focus)
+            if self.project.load_data():
+                self.create_cad_interface()
+                self.after(100, self.focus)
 
     def save_project(self, save_as: bool = False):
         if not self.project:

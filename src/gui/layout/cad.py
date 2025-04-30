@@ -20,22 +20,17 @@ class CADInterface(ctk.CTkFrame):
         self.main_screen = main_screen
 
         self.project = project
-        self.historical: list[Project] = []
-        self.historical_ix: int = -1
+        self.historical: list[Project] = [copy.deepcopy(self.project)]
+        self.historical_ix: int = 0
 
         self.canvas = tk.Canvas(self, bg=Theme.CAD.background, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
+        self.view = View()
 
-        self.view = {
-            "scale": 1,
-            "ppm": 100,
-            "P": (-5.0, 5.0)
-        }
-        
         self.image_cache: dict[Support | Node | Load, list[ImageTk.PhotoImage]] = {}
         self.canvas_id: dict[Support | Node | Load, int | None] = {}
         self.image_garbage: list[int] = []
-        
+
         self.select_rect = None
         self.select_rect_start = None
         self.pan_start = None
@@ -58,7 +53,6 @@ class CADInterface(ctk.CTkFrame):
         self.update_all_images()
 
         self.after(200, self.draw_canvas)
-        self.after(300, self.save_history)
 
     def on_escape(self, event):
         self.deselect_all()
@@ -76,8 +70,7 @@ class CADInterface(ctk.CTkFrame):
         self.delete_selected()
 
     def mouse_motion(self, event):
-        # self.main_screen.FrmStatusBar.LblPos.configure(text=f"{self.to_model(event.x, event.y, 2)}")
-        self.main_screen.FrmStatusBar.LblPos.configure(text=self.view["scale"])
+        self.main_screen.FrmStatusBar.LblPos.configure(text=f"{self.to_model(event.x, event.y, 2)}")
 
         for node in self.project.nodes:
             if not node.is_selected:
@@ -110,13 +103,14 @@ class CADInterface(ctk.CTkFrame):
 
             # Creates the rectangle with equal initial coordinates
             self.select_rect = self.canvas.create_rectangle(*self.select_rect_start, *self.select_rect_start,
-                                                            outline=Theme.CAD.select_rect, width=2)
+                                                            outline=Theme.CAD.select_rect, width=1)
         self.draw_canvas()
 
     def mouse_move_left(self, event):
         # Updates rectangle while dragging:
         if self.select_rect:
             self.canvas.coords(self.select_rect, *self.select_rect_start, event.x, event.y)
+            self.canvas.tag_raise(self.select_rect)  # puts the select_rect in above
 
     def mouse_up_left(self, event):
         if self.select_rect:
@@ -148,12 +142,10 @@ class CADInterface(ctk.CTkFrame):
     def mouse_move_middle(self, event):
         if self.pan_start is None:
             return
-        scale, ppm, P = self.view.values()
 
         dx = event.x - self.pan_start[0]
         dy = self.pan_start[1] - event.y
-
-        self.view["P"] = (P[0] - dx / (scale * ppm), P[1] - dy / (scale * ppm))
+        self.view.translate(dx, dy)
 
         self.pan_start = (event.x, event.y)
         self.draw_canvas()
@@ -163,23 +155,15 @@ class CADInterface(ctk.CTkFrame):
         self.pan_start = None
 
     def mouse_wheel(self, event):
-        Mzx, Mzy = self.to_model(event.x, event.y)
-        s = 1.1 if event.delta > 0 else 1 / 1.1
-
-        P0x, P0y = self.view["P"]
-        P1x = Mzx - (Mzx - P0x) / s
-        P1y = Mzy - (Mzy - P0y) / s
-
-        self.view["scale"] *= s
-        self.view["P"] = (P1x, P1y)
-
+        Mz = self.to_model(event.x, event.y)
+        self.view.zoom(Mz, event.delta)
         self.draw_canvas()
 
     def to_screen(self, x_model: float, y_model: float) -> tuple[int, int]:
         """
         Converts coordinates from model to canvas.
         """
-        scale, ppm, P = self.view.values()
+        scale, ppm, P = self.view.scale, self.view.ppm, self.view.P
         x_screen = int((x_model - P[0]) * ppm * scale)
         y_screen = int((P[1] - y_model) * ppm * scale)
         return x_screen, y_screen
@@ -188,7 +172,7 @@ class CADInterface(ctk.CTkFrame):
         """
         Converts coordinates from canvas to model.
         """
-        scale, ppm, P = self.view.values()
+        scale, ppm, P = self.view.scale, self.view.ppm, self.view.P
         x_model = P[0] + x_screen / (ppm * scale)
         y_model = P[1] - y_screen / (ppm * scale)
         if ndigits > 0:
@@ -227,39 +211,58 @@ class CADInterface(ctk.CTkFrame):
 
     def delete_element(self, element: Node | Load):
         if isinstance(element, Node):
-            self.project.nodes.remove(element)
             if element.support:
-                self.canvas.delete(self.canvas_id[element.support])
-            self.canvas.delete(self.canvas_id[element])
-            self.project.modified = True
-        elif isinstance(element, PLLoad):
+                if self.canvas_id.get(element.support):
+                    self.canvas.delete(self.canvas_id[element.support])
+                    self.canvas_id.pop(element.support)
+                if self.image_cache.get(element.support):
+                    self.image_cache.pop(element.support)
+
+            if self.canvas_id.get(element):
+                self.canvas.delete(self.canvas_id[element])
+                self.canvas_id.pop(element)
+            if self.image_cache.get(element):
+                self.image_cache.pop(element)
+
+            self.project.nodes.remove(element)
+        elif isinstance(element, Load):
+            if self.canvas_id.get(element):
+                self.canvas.delete(self.canvas_id[element])
+                self.canvas_id.pop(element)
+            if self.image_cache.get(element):
+                self.image_cache.pop(element)
+
             self.project.loads.remove(element)
-            self.canvas.delete(self.canvas_id[element])
-            self.project.modified = True
-        elif isinstance(element, DLLoad):
-            self.project.modified = True
-            ...
+        self.project.modified = True
         self.main_screen.update_title()  # flerken (verificar se farei assim mesmo)
 
     def delete_selected(self):
         selected_list = self.get_selected()
         if selected_list:
-            self.save_history()
             for selected in selected_list:
                 self.delete_element(selected)
             self.check_integrity()
             self.draw_canvas()
+            self.save_history()
 
     def undo(self):
         if self.historical_ix > 0:
             self.historical_ix -= 1
             self.project = copy.deepcopy(self.historical[self.historical_ix])
+
+            self.canvas.delete("all")
+            self.deselect_all()
+            self.update_all_images()
             self.draw_canvas()
 
     def redo(self):
         if self.historical_ix < len(self.historical) - 1:
             self.historical_ix += 1
             self.project = copy.deepcopy(self.historical[self.historical_ix])
+
+            self.canvas.delete("all")
+            self.deselect_all()
+            self.update_all_images()
             self.draw_canvas()
 
     def save_history(self):
@@ -302,7 +305,7 @@ class CADInterface(ctk.CTkFrame):
             self.canvas_id[element] = self.canvas.create_image(*pos, anchor="c", image=img)
         elif isinstance(element, DLLoad):
             ...
-        
+
     def draw_canvas(self) -> bool:
         if not self.project:
             self.destroy()
@@ -316,10 +319,10 @@ class CADInterface(ctk.CTkFrame):
 
             # GRID:
             if self.main_screen.FrmStatusBar.VarGrid.get():
-                scale, ppm, P = self.view.values()
+                scale, ppm, P = self.view.scale, self.view.ppm, self.view.P
                 width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
 
-                dx, dy = (1, 1)
+                dx = dy = max([1, 5 ** math.floor(math.log(1 / scale, 5))])
                 kx0 = math.ceil(P[0] / dx)
                 kx1 = math.floor((P[0] + width / (scale * ppm)) / dx)
                 ky0 = math.ceil((P[1] - height / (scale * ppm)) / dy)
@@ -365,9 +368,9 @@ class CADInterface(ctk.CTkFrame):
             return False
 
     def check_integrity(self):
-        pos = [node.position for node in self.project.nodes]
-        if pos:
-            min_pos, max_pos = min(pos), max(pos)
+        node_pos = [node.position for node in self.project.nodes]
+        if node_pos:
+            min_pos, max_pos = min(node_pos), max(node_pos)
 
             if min_pos != 0:
                 for node in self.project.nodes:
@@ -378,16 +381,53 @@ class CADInterface(ctk.CTkFrame):
                     elif isinstance(load, DLLoad):
                         load.start -= min_pos
                         load.end -= min_pos
+                node_pos = [node.position for node in self.project.nodes]
+                min_pos, max_pos = min(node_pos), max(node_pos)
 
-            pos = [node.position for node in self.project.nodes]
-            min_pos, max_pos = min(pos), max(pos)
-
-            self.project.loads = [
-                load for load in self.project.loads
-                if (
-                        (isinstance(load, PLLoad) and min_pos <= load.position <= max_pos) or
-                        (isinstance(load, DLLoad) and ...)
-                )
-            ]
-
+            for load in self.project.loads:
+                if isinstance(load, PLLoad):
+                    if load.position < min_pos or load.position > max_pos:
+                        self.delete_element(load)
+                elif isinstance(load, DLLoad):
+                    if load.start < min_pos or load.end > max_pos:
+                        self.delete_element(load)
             self.draw_canvas()
+        else:
+            for load in self.project.loads:
+                self.delete_element(load)
+
+
+class View:
+    def __init__(self, scale_fac=1.1, scale_ix=0, ppm=100, P=(-5.0, 5.0)):
+        """
+        :param scale_fac: Scale factor
+        :param scale_ix: Scale index (exponent)
+        :param ppm: Pixel per meter
+        :param P: Up-Left point
+        """
+        self.scale_fac: float = scale_fac
+        self.scale_ix: int = scale_ix
+        self.ppm: int = ppm
+        self.P: tuple[float, float] = P
+
+    @property
+    def scale(self) -> float:
+        return self.scale_fac ** self.scale_ix
+
+    def zoom(self, Mz, delta):
+        if delta > 0:
+            if self.scale_ix == 20:
+                return
+            s = self.scale_fac
+            self.scale_ix += 1
+        else:
+            if self.scale_ix == -40:
+                return
+            s = 1 / self.scale_fac
+            self.scale_ix -= 1
+        self.P = (Mz[0] - (Mz[0] - self.P[0]) / s,
+                  Mz[1] - (Mz[1] - self.P[1]) / s)
+
+    def translate(self, dx, dy):
+        self.P = (self.P[0] - dx / (self.scale * self.ppm),
+                  self.P[1] - dy / (self.scale * self.ppm))
