@@ -7,8 +7,9 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.withdraw()
-        self.window = SplashScreen(master=self)
-        
+        self.window = SplashScreen(app=self)
+
     def start_app(self):
-        self.window.destroy()
-        self.window = MainScreen(master=self)
+        if self.window:
+            self.window.destroy()
+            self.window = MainScreen(app=self)

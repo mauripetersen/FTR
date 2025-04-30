@@ -1,5 +1,4 @@
 from .splash import SplashScreen
-from .main_app import MainScreen
-from .open_project import OpenProjectScreen
+from .main import MainScreen
 
-__all__ = ["SplashScreen", "MainScreen", "OpenProjectScreen"]
+__all__ = ["SplashScreen", "MainScreen"]

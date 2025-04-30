@@ -8,7 +8,7 @@ import os
 
 from config import __version__
 from config import SectionType, SupportType, LoadType
-from config import FTR_NAME_0, projects_dir
+from config import FTR_NAME_0
 from gui.style import Theme
 from manager.font import get_pillow_font
 from manager.language import lang
@@ -17,8 +17,10 @@ __all__ = ["Project", "Section", "Support", "Node", "Load", "PLLoad", "DLLoad"]
 
 
 class Project:
-    def __init__(self, project_name: str):
-        self.name: str = project_name
+    def __init__(self, path: str | None = None):
+        self.path: str | None = path
+
+        # Project Data:
         self.elastic_modulus: float | None = None
         self.fck: float | None = None
         self.section: Section | None = None
@@ -48,17 +50,16 @@ class Project:
 
         return res
 
-    def get_path(self, check: bool = False) -> str | None:
-        project_path = os.path.normpath(os.path.join(projects_dir, self.name + ".ftr"))
-        if check and not (os.path.exists(project_path) and os.path.isfile(project_path)):
-            return None
-        return project_path
+    @property
+    def name(self):
+        if self.path:
+            return os.path.splitext(os.path.basename(self.path))[0]
+        return "Untitled"
 
     def load_data(self) -> bool:
         """Load the project data."""
-        project_path = self.get_path()
         try:
-            with open(project_path, "r") as f:
+            with open(self.path, "r") as f:
                 data = json.load(f)
 
             self.elastic_modulus = data["elastic_modulus"]  # flerken: fazer verificações do E para tipo int ou None
@@ -98,72 +99,24 @@ class Project:
     def save_data(self) -> bool:
         """Saves the project data."""
         try:
-            project_path = self.get_path()
-
             data = self.to_dict()
             json_str = json.dumps(data, indent=4)
             json_str_with_tabs = json_str.replace("    ", "\t")
-            with open(project_path, "w") as f:
+            with open(self.path, "w") as f:
                 f.write(json_str_with_tabs)
-
             self.modified = False
+
             return True
         except Exception as e:
             messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'save_data')}: {e}")
             self.last_error = str(e)
             return False
 
-    def create(self, ask_user: bool = True) -> bool:
-        """Create a new and empty project."""
-        try:
-            if not self.name:
-                e = lang.get('error', 'project_name')
-                messagebox.showerror(FTR_NAME_0, f"ERRO: {e}")
-                self.last_error = str(e)
-                return False
-
-            project_path = self.get_path()
-            if os.path.exists(project_path) and os.path.isfile(project_path):
-                if ask_user:
-                    if not messagebox.askyesnocancel(FTR_NAME_0, lang.get('quest', 'existing_project')):
-                        return False
-                self.delete()
-
-            # clear the variables:
-            self.elastic_modulus = None
-            self.fck = None
-            self.section = None
-            self.nodes = []
-            self.loads = []
-            self.metadata = self.get_metadata()
-            self.modified = False
-            self.last_error = None
-
-            self.save_data()
-            return True
-        except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'create_project')}: {e}")
-            self.last_error = str(e)
-            return False
-
-    def delete(self, ask_user: bool = False) -> bool:
-        """Delete the project file."""
-        try:
-            if ask_user and messagebox.askyesnocancel(FTR_NAME_0, lang.get('quest', 'delete_project')):
-                return False
-            if self.exists():
-                os.remove(self.get_path())
-                return True
-            return False
-        except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'delete_project')}: {e}")
-            self.last_error = str(e)
-            return False
-
     def exists(self) -> bool:
         """Checks if the project exists."""
-        project_path = self.get_path()
-        return os.path.exists(project_path) and os.path.isfile(project_path)
+        if self.path:
+            return os.path.exists(self.path) and os.path.isfile(self.path)
+        return False
 
     @staticmethod
     def get_metadata() -> dict[str, str]:

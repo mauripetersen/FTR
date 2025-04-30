@@ -1,26 +1,30 @@
 {
     "file": "Arquivo",
 	"tools": "Ferramentas",
-	"new_project": "Novo Projeto",
-    "open_project": "Abrir Projeto",
-    "save_project": "Salvar Projeto",
+	"options": "Opções",
+	"about_FTR": "Sobre o FTR",
+	"new_project": "Novo...",
+    "open_project": "Abrir...",
+    "save_project": "Salvar",
+	"save_as_project": "Salvar Como...",
+	"close_project": "Fechar Projeto",
 	"exit": "Sair",
+	"language": "Idioma",
 	"grid": "Malha",
 	"project_not_saved": "Projeto não salvo",
-	"choose_project": "Escolha o Projeto",
+	"open_project_title": "Abrir Projeto FTR",
+	"save_project_title": "Salvar Projeto FTR",
+	"save_as_project_title": "Salvar Como Projeto FTR",
+	"ftr_projects": "Projetos FTR",
 	"error": {
 		"detect_scale": "Falha ao detectar a escala do sistema",
 		"load_image": "Erro ao carregar imagem",
 		"load_data": "Erro ao carregar os dados do projeto",
 		"save_data": "Erro ao salvar os dados do projeto",
-		"project_name": "Nome do projeto não definido",
-		"create_project": "Erro ao criar novo projeto",
-		"delete_project": "Erro ao deletar o projeto",
 		"draw_canvas": "Erro ao desenhar o canvas"
 	},
 	"quest": {
 		"existing_project": "Já existe um projeto com este nome. Deseja sobrescrever?",
-		"delete_project": "Tem certeza que deseja excluir o projeto?",
 		"save_before_open_project": "Deseja salvar antes de abrir outro projeto?",
 		"save_before_close": "Deseja salvar antes de fechar?"
 	}

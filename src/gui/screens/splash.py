@@ -11,8 +11,10 @@ __all__ = ["SplashScreen"]
 
 
 class SplashScreen(ctk.CTkToplevel):
-    def __init__(self, master: ctk.CTk):
-        super().__init__(master=master)
+    def __init__(self, app):
+        super().__init__(master=app)
+        self.app = app
+
         self.size = (800, 500)
         configure_TopLevel(self, maximized=False, win_size=self.size, flat=True)
 
@@ -51,7 +53,8 @@ class SplashScreen(ctk.CTkToplevel):
             self.progress_val += 0.5
             self.PrgLoad.set(self.progress_val / 100)
             # flerken 1:
+            # self.after(5, self.load_progress)
             # self.after(10, self.load_progress)
             self.after(1, self.load_progress)
         else:
-            self.master.start_app()
+            self.app.start_app()

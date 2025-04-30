@@ -2,7 +2,6 @@ from project import Project, Section, Support, Node, Load, PLLoad, DLLoad
 from config import SectionType, SupportType, LoadType
 
 my_project = Project("Projeto X")
-my_project.create()
 
 my_project.section = Section(SectionType.R, {"b": 30, "h": 50})
 my_project.section = Section(SectionType.R, None)

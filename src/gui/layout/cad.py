@@ -14,9 +14,11 @@ __all__ = ["CADInterface"]
 
 
 class CADInterface(ctk.CTkFrame):
-    def __init__(self, app, master: ctk.CTkFrame, project: Project):
-        super().__init__(master)
+    def __init__(self, app, main_screen, master_frame, project: Project):
+        super().__init__(master_frame)
         self.app = app
+        self.main_screen = main_screen
+
         self.project = project
         self.historical: list[Project] = []
         self.historical_ix: int = -1
@@ -29,7 +31,7 @@ class CADInterface(ctk.CTkFrame):
             "ppm": 100,
             "P": (-5.0, 5.0)
         }
-
+        
         self.image_cache: dict[Support | Node | Load, list[ImageTk.PhotoImage]] = {}
         self.canvas_id: dict[Support | Node | Load, int | None] = {}
         self.image_garbage: list[int] = []
@@ -38,12 +40,11 @@ class CADInterface(ctk.CTkFrame):
         self.select_rect_start = None
         self.pan_start = None
 
-        self.app.bind("<Escape>", self.on_escape)
-        self.app.bind("<Control-a>", self.on_ctrl_a)
-        self.app.bind("<Control-o>", self.on_ctrl_o)
-        self.app.bind("<Control-y>", self.on_ctrl_y)
-        self.app.bind("<Control-z>", self.on_ctrl_z)
-        self.app.bind("<Delete>", self.on_delete)
+        self.main_screen.bind("<Escape>", self.on_escape)
+        self.main_screen.bind("<Control-a>", self.on_ctrl_a)
+        self.main_screen.bind("<Control-y>", self.on_ctrl_y)
+        self.main_screen.bind("<Control-z>", self.on_ctrl_z)
+        self.main_screen.bind("<Delete>", self.on_delete)
 
         self.canvas.bind("<Motion>", self.mouse_motion)
         self.canvas.bind("<Button-1>", self.mouse_down_left)
@@ -65,9 +66,6 @@ class CADInterface(ctk.CTkFrame):
     def on_ctrl_a(self, event):
         self.select_all()
 
-    def on_ctrl_o(self, event):
-        self.app.open_project()
-
     def on_ctrl_y(self, event):
         self.redo()
 
@@ -78,7 +76,8 @@ class CADInterface(ctk.CTkFrame):
         self.delete_selected()
 
     def mouse_motion(self, event):
-        self.app.FrmStatusBar.LblPos.configure(text=f"{self.to_model(event.x, event.y, 2)}")
+        # self.main_screen.FrmStatusBar.LblPos.configure(text=f"{self.to_model(event.x, event.y, 2)}")
+        self.main_screen.FrmStatusBar.LblPos.configure(text=self.view["scale"])
 
         for node in self.project.nodes:
             if not node.is_selected:
@@ -111,7 +110,7 @@ class CADInterface(ctk.CTkFrame):
 
             # Creates the rectangle with equal initial coordinates
             self.select_rect = self.canvas.create_rectangle(*self.select_rect_start, *self.select_rect_start,
-                                                            outline=Theme.CAD.select_rect)
+                                                            outline=Theme.CAD.select_rect, width=2)
         self.draw_canvas()
 
     def mouse_move_left(self, event):
@@ -240,16 +239,16 @@ class CADInterface(ctk.CTkFrame):
         elif isinstance(element, DLLoad):
             self.project.modified = True
             ...
+        self.main_screen.update_title()  # flerken (verificar se farei assim mesmo)
 
-    def delete_selected(self, flag_draw_canvas=True):
+    def delete_selected(self):
         selected_list = self.get_selected()
         if selected_list:
             self.save_history()
             for selected in selected_list:
                 self.delete_element(selected)
             self.check_integrity()
-            if flag_draw_canvas:
-                self.draw_canvas()
+            self.draw_canvas()
 
     def undo(self):
         if self.historical_ix > 0:
@@ -308,15 +307,15 @@ class CADInterface(ctk.CTkFrame):
         if not self.project:
             self.destroy()
         try:
+            nodes = self.project.nodes
+            loads = self.project.loads
+
             for g in self.image_garbage:
                 self.canvas.delete(g)
             self.image_garbage.clear()
 
-            nodes = self.project.nodes
-            loads = self.project.loads
-
             # GRID:
-            if self.app.FrmStatusBar.VarGrid.get():
+            if self.main_screen.FrmStatusBar.VarGrid.get():
                 scale, ppm, P = self.view.values()
                 width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
 
