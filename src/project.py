@@ -134,18 +134,64 @@ class Project:
 
 
 class Section:
-    def __init__(self,
-                 section_type: SectionType | Literal["R", "I", "T"] | None,
-                 dims: dict[str, float] | None):
-        self.type = section_type
+    def __init__(self, dims: dict[str, float] | None):
         self.dims = {key: float(val) for key, val in dims.items()} if dims else None
 
     def __str__(self):
         return f"Section(type={self.type}, dims={self.dims})"
 
+    @property
+    def type(self) -> SectionType:
+        if isinstance(self, SecR):
+            return SectionType.R
+        if isinstance(self, SecI):
+            return SectionType.I
+        if isinstance(self, SecT):
+            return SectionType.T
+
+    @property
+    def Inertia(self) -> float:
+        raise NotImplementedError("Subclass must implement calculate_I()")
+
+    def to_dict(self) -> dict:
+        raise NotImplementedError("Subclass must implement to_dict()")
+
+
+class SecR(Section):
+    def __init__(self, b, h):
+        super().__init__()
+        self.b = b
+        self.h = h
+
+    @property
+    def I(self) -> float:
+        return (self.b * self.h ** 3) / 12
+
     def to_dict(self) -> dict:
         return {
-            "type": self.type,
+            "type": str(self.type),
+            "dims": self.dims
+        }
+
+
+class SecI(Section):
+    def __init__(self, dims):
+        super().__init__(dims)
+
+    def to_dict(self) -> dict:
+        return {
+            "type": str(self.type),
+            "dims": self.dims
+        }
+
+
+class SecT(Section):
+    def __init__(self, dims):
+        super().__init__(dims)
+
+    def to_dict(self) -> dict:
+        return {
+            "type": str(self.type),
             "dims": self.dims
         }
 
@@ -265,15 +311,16 @@ class Node:
 
 
 class Load:
-    def __init__(self, load_type: LoadType | Literal["PL", "DL"]):
-        self._type = load_type
-
+    def __init__(self):
         self.is_highlighted: bool = False
         self.is_selected: bool = False
 
     @property
-    def type(self) -> LoadType | Literal["PL", "DL"]:
-        return self._type
+    def type(self) -> LoadType:
+        if isinstance(self, PLLoad):
+            return LoadType.PL
+        elif isinstance(self, DLLoad):
+            return LoadType.DL
 
     def update_image(self) -> list[ImageTk.PhotoImage]:
         raise NotImplementedError("Subclass must implement update_image()")
@@ -297,7 +344,7 @@ class PLLoad(Load):
                  fx: float = 0.0,
                  fy: float = 0.0,
                  mz: float = 0.0):
-        super().__init__(load_type=LoadType.PL)
+        super().__init__()
         self.position = float(position)
         self.Fx = float(fx)
         self.Fy = float(fy)
@@ -453,7 +500,7 @@ class DLLoad(Load):
                  end: float,
                  q_start: float,
                  q_end: float):
-        super().__init__(load_type=LoadType.DL)
+        super().__init__()
         self.start = float(start)
         self.end = float(end)
         self.q_start = float(q_start)
