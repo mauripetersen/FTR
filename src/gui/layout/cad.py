@@ -6,7 +6,7 @@ import math
 import copy
 
 from config import Settings, Theme, LoadType, SupportType
-from project import Project, Section, Support, Node, Load, PLLoad, DLLoad
+from project import Project, Support, Node, Load, PLLoad, DLLoad
 from gui.render import update_image
 from manager import Language
 
@@ -25,7 +25,7 @@ class CADInterface(ctk.CTkFrame):
 
         self.canvas = tk.Canvas(self, bg=Theme.CAD.background, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
-        self.view = View()
+        self.view = View(scale_fac=1.1, ppm_0=100, P=(-5.0, 5.0))
 
         self.image_cache: dict[Support | Node | Load, list[ImageTk.PhotoImage]] = {}
         self.canvas_id: dict[Support | Node | Load, int | None] = {}
@@ -142,12 +142,10 @@ class CADInterface(ctk.CTkFrame):
     def mouse_move_middle(self, event):
         if self.pan_start is None:
             return
-
-        dx = event.x - self.pan_start[0]
-        dy = self.pan_start[1] - event.y
-        self.view.translate(dx, dy)
-
+        dx, dy = event.x - self.pan_start[0], self.pan_start[1] - event.y
         self.pan_start = (event.x, event.y)
+
+        self.view.translate(dx, dy)
         self.draw_canvas()
 
     def mouse_up_middle(self, event):
@@ -163,18 +161,18 @@ class CADInterface(ctk.CTkFrame):
         """
         Converts coordinates from model to canvas.
         """
-        scale, ppm, P = self.view.scale, self.view.ppm, self.view.P
-        x_screen = int((x_model - P[0]) * ppm * scale)
-        y_screen = int((P[1] - y_model) * ppm * scale)
+        ppm, P = self.view.ppm, self.view.P
+        x_screen = int((x_model - P[0]) * ppm)
+        y_screen = int((P[1] - y_model) * ppm)
         return x_screen, y_screen
 
     def to_model(self, x_screen: int, y_screen: int, ndigits: int = 0) -> tuple[float, float]:
         """
         Converts coordinates from canvas to model.
         """
-        scale, ppm, P = self.view.scale, self.view.ppm, self.view.P
-        x_model = P[0] + x_screen / (ppm * scale)
-        y_model = P[1] - y_screen / (ppm * scale)
+        ppm, P = self.view.ppm, self.view.P
+        x_model = P[0] + x_screen / ppm
+        y_model = P[1] - y_screen / ppm
         if ndigits > 0:
             x_model = round(x_model, ndigits)
             y_model = round(y_model, ndigits)
@@ -324,8 +322,8 @@ class CADInterface(ctk.CTkFrame):
 
                 dx = dy = max([1, 5 ** math.floor(math.log(1 / scale, 5))])
                 kx0 = math.ceil(P[0] / dx)
-                kx1 = math.floor((P[0] + width / (scale * ppm)) / dx)
-                ky0 = math.ceil((P[1] - height / (scale * ppm)) / dy)
+                kx1 = math.floor((P[0] + width / ppm) / dx)
+                ky0 = math.ceil((P[1] - height / ppm) / dy)
                 ky1 = math.floor(P[1] / dy)
 
                 # Vertical lines:
@@ -398,23 +396,35 @@ class CADInterface(ctk.CTkFrame):
 
 
 class View:
-    def __init__(self, scale_fac=1.1, scale_ix=0, ppm=100, P=(-5.0, 5.0)):
+    def __init__(
+            self,
+            scale_fac: float,
+            ppm_0: int,
+            P: tuple[float, float]
+    ):
         """
-        :param scale_fac: Scale factor
-        :param scale_ix: Scale index (exponent)
-        :param ppm: Pixel per meter
-        :param P: Up-Left point
+        A view to reference the frame-view of the canvas.
+        :param scale_fac: Scale factor (for perform zoom);
+        :param ppm_0: Píxel-per-meter initial (when scale = 1.0);
+        :param P: Up-Left point.
         """
         self.scale_fac: float = scale_fac
-        self.scale_ix: int = scale_ix
-        self.ppm: int = ppm
+        self.scale_ix: int = 0
+        self.ppm_0: int = ppm_0
         self.P: tuple[float, float] = P
 
     @property
     def scale(self) -> float:
+        """Scale of the view."""
         return self.scale_fac ** self.scale_ix
 
-    def zoom(self, Mz, delta):
+    @property
+    def ppm(self) -> float:
+        """Píxel-per-meter."""
+        return self.ppm_0 * self.scale
+
+    def zoom(self, Mz: tuple[float, float], delta: int):
+        """Performs a zoom in this view. Mz is the central point of zoom and delta is the 'event.delta'."""
         if delta > 0:
             if self.scale_ix == 20:
                 return
@@ -428,6 +438,7 @@ class View:
         self.P = (Mz[0] - (Mz[0] - self.P[0]) / s,
                   Mz[1] - (Mz[1] - self.P[1]) / s)
 
-    def translate(self, dx, dy):
-        self.P = (self.P[0] - dx / (self.scale * self.ppm),
-                  self.P[1] - dy / (self.scale * self.ppm))
+    def translate(self, dx: float, dy: float):
+        """Translates this view. This method apply a displacement dx and dy in the P value."""
+        self.P = (self.P[0] - dx / self.ppm,
+                  self.P[1] - dy / self.ppm)

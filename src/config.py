@@ -156,7 +156,6 @@ class Theme:
             data = json.load(f)
         for key, val in data.items():
             if isinstance(val, dict):
-                # Subclass found
                 sub_cls = getattr(cls, key, None)
                 if sub_cls:
                     for subkey, sub_val in val.items():

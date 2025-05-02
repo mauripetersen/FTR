@@ -1,14 +1,14 @@
 import customtkinter as ctk
 import ctypes
 
-from config import Settings
+from config import Settings, Theme
 from gui.app import App
 from manager import FontManager, Language
 
 if __name__ == "__main__":
     Settings.load()
     Language.load()
-    # Theme.load()
+    Theme.load()
 
     ctk.set_appearance_mode(Settings.theme)
     try:
