@@ -5,10 +5,10 @@ from PIL import Image, ImageDraw, ImageTk
 import math
 import copy
 
-from config import FTR_NAME_0, LoadType, SupportType
+from config import Settings, Theme, LoadType, SupportType
 from project import Project, Section, Support, Node, Load, PLLoad, DLLoad
-from gui.style import Theme
-from manager.language import lang
+from gui.render import update_image
+from manager import Language
 
 __all__ = ["CADInterface"]
 
@@ -272,11 +272,11 @@ class CADInterface(ctk.CTkFrame):
 
     def update_all_images(self):
         for node in self.project.nodes:
-            self.image_cache[node] = node.update_image()
+            self.image_cache[node] = update_image(node)
             if node.support:
-                self.image_cache[node.support] = node.support.update_image()
+                self.image_cache[node.support] = update_image(node.support)
         for load in self.project.loads:
-            self.image_cache[load] = load.update_image()
+            self.image_cache[load] = update_image(load)
 
     def draw_element(self, element: Support | Node | Load):
         if isinstance(element, Support):
@@ -363,7 +363,7 @@ class CADInterface(ctk.CTkFrame):
                 self.draw_element(node)
             return True
         except Exception as e:
-            messagebox.showerror(FTR_NAME_0, f"{lang.get('error', 'draw_canvas')}: {e}")
+            messagebox.showerror(Settings.FTR_NAME[0], f"{Language.get('Error', 'draw_canvas')}: {e}")
             self.project.last_error = str(e)
             return False
 

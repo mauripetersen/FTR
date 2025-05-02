@@ -1,8 +1,8 @@
 import customtkinter as ctk
 import tkinter as tk
 
-from gui.style import Theme
-from manager.language import lang
+from config import Theme
+from manager import Language
 
 __all__ = ["create_tab"]
 
@@ -11,7 +11,7 @@ def create_tab(app, main_screen, master_frame):
     master_frame.active_menu = None
 
     # FILE:
-    BtnFile = ctk.CTkButton(master_frame, text=lang.get('file'),
+    BtnFile = ctk.CTkButton(master_frame, text=Language.get('Tab', 'File', 'file'),
                             fg_color="transparent", hover_color=Theme.Tab.highlight,
                             font=("Segoe UI", 14),
                             text_color=Theme.Tab.text, corner_radius=0, width=80)
@@ -22,21 +22,21 @@ def create_tab(app, main_screen, master_frame):
         master_frame=master_frame,
         master_button=BtnFile,
         options=[
-            (lang.get('about_FTR'), lambda: print("I love flerkens!")),
+            (Language.get('Tab', 'File', 'about_FTR'), lambda: print("I love flerkens!")),
             ("---", None),
-            ((lang.get('new_project'), "(Ctrl+N)"), main_screen.new_project),
-            ((lang.get('open_project'), "(Ctrl+O)"), main_screen.open_project),
-            ((lang.get('save_project'), "(Ctrl+S)"), main_screen.save_project),
-            (lang.get('save_as_project'), lambda: main_screen.save_project(save_as=True)),
-            ((lang.get('close_project'), "(Ctrl+W)"), main_screen.close_project),
+            ((Language.get('Tab', 'File', 'new_project'), "(Ctrl+N)"), main_screen.new_project),
+            ((Language.get('Tab', 'File', 'open_project'), "(Ctrl+O)"), main_screen.open_project),
+            ((Language.get('Tab', 'File', 'save_project'), "(Ctrl+S)"), main_screen.save_project),
+            (Language.get('Tab', 'File', 'save_as_project'), lambda: main_screen.save_project(save_as=True)),
+            ((Language.get('Tab', 'File', 'close_project'), "(Ctrl+W)"), main_screen.close_project),
             ("---", None),
-            (lang.get('exit'), main_screen.on_close)
+            (Language.get('Tab', 'File', 'exit'), main_screen.on_close)
         ]
     )
     BtnFile.configure(command=MnuFile_toggle)
 
     # TOOLS:
-    BtnTools = ctk.CTkButton(master_frame, text=lang.get('tools'),
+    BtnTools = ctk.CTkButton(master_frame, text=Language.get('Tab', 'Tools', 'tools'),
                              fg_color="transparent", hover_color=Theme.Tab.highlight,
                              font=("Segoe UI", 14),
                              text_color=Theme.Tab.text, corner_radius=0, width=100)
@@ -47,15 +47,15 @@ def create_tab(app, main_screen, master_frame):
         master_frame=master_frame,
         master_button=BtnTools,
         options=[
-            ("Isostática", lambda: None),
-            ("Hiperestática", lambda: None),
-            ("Normas NBR", lambda: None)
+            (Language.get('Tab', 'Tools', 'flerken 1'), lambda: None),
+            (Language.get('Tab', 'Tools', 'flerken 2'), lambda: None),
+            (Language.get('Tab', 'Tools', 'flerken 3'), lambda: None)
         ]
     )
     BtnTools.configure(command=MnuTools_toggle)
 
     # OPTIONS:
-    BtnOptions = ctk.CTkButton(master_frame, text=lang.get('options'),
+    BtnOptions = ctk.CTkButton(master_frame, text=Language.get('Tab', 'Options', 'options'),
                                fg_color="transparent", hover_color=Theme.Tab.highlight,
                                font=("Segoe UI", 14),
                                text_color=Theme.Tab.text, corner_radius=0, width=100)
@@ -66,7 +66,7 @@ def create_tab(app, main_screen, master_frame):
         master_frame=master_frame,
         master_button=BtnOptions,
         options=[
-            ((lang.get('language'), ">"), lambda: None),
+            ((Language.get('Tab', 'Options', 'language'), ">"), lambda: None),
             ("Item 2", lambda: None),
             ("Item 3", lambda: None)
         ]

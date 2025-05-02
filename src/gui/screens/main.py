@@ -1,11 +1,11 @@
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
 
-from config import FTR_NAME_0, projects_dir
-from gui.style import Theme, configure_TopLevel
+from config import Settings, Theme
+from gui.style import configure_TopLevel
 from gui.layout import tab, ribbon, sidebar, statusbar, cad
 from project import Project
-from manager.language import lang
+from manager import Language
 
 __all__ = ["MainScreen"]
 
@@ -24,7 +24,7 @@ class MainScreen(ctk.CTkToplevel):
         tab.create_tab(self.app, self, self.FrmTab)
 
         # Sidebar (side menu)
-        self.FrmSideBar = ctk.CTkFrame(self, fg_color=Theme.SideBar.background, corner_radius=0, width=200)
+        self.FrmSideBar = ctk.CTkFrame(self, fg_color=Theme.SideBar.background, corner_radius=0, width=300)
         self.FrmSideBar.pack_propagate(False)  # Prevents the Frame from adjusting to the content
         self.FrmSideBar.pack(side="left", fill="y")
         sidebar.create_sidebar(self.app, self, self.FrmSideBar)
@@ -78,12 +78,12 @@ class MainScreen(ctk.CTkToplevel):
             self.create_cad_interface()
 
     def open_project(self):
-        project_path = filedialog.askopenfilename(title=lang.get('open_project_title'),
-                                                  initialdir=projects_dir,
-                                                  filetypes=[(lang.get('ftr_projects'), "*.ftr")])
+        project_path = filedialog.askopenfilename(title=Language.get('open_project_title'),
+                                                  initialdir=Settings.PROJECTS_DIR,
+                                                  filetypes=[(Language.get('ftr_projects'), "*.ftr")])
         if not project_path:
             return
-        if self.close_project(message=lang.get('quest', 'save_before_open_project')):
+        if self.close_project(message=Language.get('Quest', 'save_before_open_project')):
             self.project = Project(project_path)
             if self.project.load_data():
                 self.create_cad_interface()
@@ -95,10 +95,10 @@ class MainScreen(ctk.CTkToplevel):
         if self.project.path and not save_as:
             self.project.save_data()
         else:
-            title = lang.get('save_as_project_title') if save_as else lang.get('save_project_title')
+            title = Language.get('save_as_project_title') if save_as else Language.get('save_project_title')
             project_path = filedialog.asksaveasfilename(title=title,
-                                                        initialdir=projects_dir,
-                                                        filetypes=[(lang.get('ftr_projects'), "*.ftr")],
+                                                        initialdir=Settings.PROJECTS_DIR,
+                                                        filetypes=[(Language.get('ftr_projects'), "*.ftr")],
                                                         initialfile="Untitled",
                                                         defaultextension=".ftr")
             if not project_path:
@@ -107,7 +107,7 @@ class MainScreen(ctk.CTkToplevel):
             self.project.save_data()
         self.update_title()
 
-    def close_project(self, ask_user: bool = True, message: str = lang.get('quest', 'save_before_close')) -> bool:
+    def close_project(self, ask_user: bool = True, message: str | None = None) -> bool:
         """
         Closes the project. It can be called for many reasons.
         :param ask_user: Flag to ask the user if the project is not saved.
@@ -115,7 +115,8 @@ class MainScreen(ctk.CTkToplevel):
         :return: True if the project was successfully closed and False if it didn't (and the user don't want to).
         """
         if ask_user and self.project and self.project.modified:
-            result = messagebox.askyesnocancel(lang.get('project_not_saved'), message, icon="warning")
+            msg = message if message else Language.get('Quest', 'save_before_close')
+            result = messagebox.askyesnocancel(Language.get('project_not_saved'), msg, icon="warning")
             if result is None:
                 return False
             elif result:
@@ -127,16 +128,17 @@ class MainScreen(ctk.CTkToplevel):
             self.cad_interface = None
         self.project = None
         self.update_title()
+        self.FrmStatusBar.LblPos.configure(text="")  # flerken: verificar isso depois
         return True
 
     def update_title(self):
         if self.project:
             if self.project.modified:
-                title = f"{FTR_NAME_0}: {self.project.name}*.ftr"
+                title = f"{Settings.FTR_NAME[0]}: {self.project.name}*.ftr"
             else:
-                title = f"{FTR_NAME_0}: {self.project.name}.ftr"
+                title = f"{Settings.FTR_NAME[0]}: {self.project.name}.ftr"
         else:
-            title = FTR_NAME_0
+            title = Settings.FTR_NAME[0]
         self.title(title)
 
     def on_close(self):

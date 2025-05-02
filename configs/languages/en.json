@@ -1,29 +1,45 @@
 {
-    "file": "File",
-	"tools": "Tools",
-	"options": "Options",
-	"about_FTR": "About FTR",
-	"new_project": "New...",
-    "open_project": "Open...",
-    "save_project": "Save",
-	"save_as_project": "Save As...",
-	"close_project": "Close Project",
-	"exit": "Exit",
-	"language": "Language",
-	"grid": "Grid",
 	"project_not_saved": "Project not saved",
 	"open_project_title": "Open FTR Project",
 	"save_project_title": "Save FTR Project",
 	"save_as_project_title": "Save As FTR Project",
 	"ftr_projects": "FTR Projects",
-	"error": {
+	"Ribbon": {
+		"section_properties": "Section Properties"
+	},
+	"StatusBar": {
+		"grid": "Grid"
+	},
+	"Tab": {
+		"File": {
+			"file": "File",
+			"about_FTR": "About FTR",
+			"new_project": "New...",
+			"open_project": "Open...",
+			"save_project": "Save",
+			"save_as_project": "Save As...",
+			"close_project": "Close Project",
+			"exit": "Exit"
+		},
+		"Tools": {
+			"tools": "Tools",
+			"flerken 1": "Isostatic",
+			"flerken 2": "Hiperstatic",
+			"flerken 3": "NBR Rules"
+		},
+		"Options": {
+			"options": "Options",
+			"language": "Language"
+		}
+	},
+	"Error": {
 		"detect_scale": "Failed to detect system scale",
 		"load_image": "Error loading image",
 		"load_data": "Error loading project data",
 		"save_data": "Error saving project data",
 		"draw_canvas": "Error drawing canvas"
 	},
-	"quest": {
+	"Quest": {
 		"existing_project": "A project with this name already exists. Do you want to overwrite it?",
 		"save_before_open_project": "Do you want to save before opening another project?",
 		"save_before_close": "Do you want to save before closing?"
