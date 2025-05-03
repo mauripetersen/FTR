@@ -89,12 +89,14 @@ class CADInterface(ctk.CTkFrame):
         self.draw_canvas()
 
     def mouse_down_left(self, event):
-        # event.state: 8 = Normal | 9 = Shift | 12 = Ctrl
-        if event.state not in [9, 12]:
+        flag_shift = event.state & 0x0001
+        flag_ctrl = event.state & 0x0004
+
+        if not flag_shift and not flag_ctrl:
             self.deselect_all(flag_draw_canvas=False)
         nearest = self.get_nearest(event)
         if nearest:
-            if event.state == 9:
+            if flag_shift:
                 nearest.deselect()
             else:
                 nearest.select()
@@ -119,14 +121,12 @@ class CADInterface(ctk.CTkFrame):
             for node in self.project.nodes:
                 px, py = self.to_screen(node.position, 0)
                 if x1 <= px <= x2 and y1 <= py <= y2:
-                    node.is_selected = True
-                    node.is_highlighted = True
+                    node.select()
             for load in self.project.loads:
                 if isinstance(load, PLLoad):
                     px, py = self.to_screen(load.position, 0)
                     if x1 <= px <= x2 and y1 <= py <= y2:
-                        load.is_selected = True
-                        load.is_highlighted = True
+                        load.select()
                 elif isinstance(load, DLLoad):
                     ...
 

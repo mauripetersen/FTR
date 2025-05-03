@@ -4,142 +4,145 @@ import tkinter as tk
 from config import Theme
 from manager import Language
 
-__all__ = ["create_tab"]
+__all__ = ["Tab"]
 
 
-def create_tab(app, main_screen, master_frame):
-    master_frame.active_menu = None
+class Tab(ctk.CTkFrame):
+    def __init__(self, app, main_screen):
+        super().__init__(main_screen, fg_color=Theme.Tab.background, corner_radius=0)
+        self.app = app
+        self.main_screen = main_screen
 
-    # FILE:
-    BtnFile = ctk.CTkButton(master_frame, text=Language.get('Tab', 'File', 'file'),
-                            fg_color="transparent", hover_color=Theme.Tab.highlight,
-                            font=("Segoe UI", 14),
-                            text_color=Theme.Tab.text, corner_radius=0, width=80)
-    BtnFile.pack(side="left", fill="y")
+        self.active_menu = None
 
-    MnuFile_toggle = create_dropdown_menu(
-        main_screen=main_screen,
-        master_frame=master_frame,
-        master_button=BtnFile,
-        options=[
-            (Language.get('Tab', 'File', 'about_FTR'), lambda: print("I love flerkens!")),
-            ("---", None),
-            ((Language.get('Tab', 'File', 'new_project'), "(Ctrl+N)"), main_screen.new_project),
-            ((Language.get('Tab', 'File', 'open_project'), "(Ctrl+O)"), main_screen.open_project),
-            ((Language.get('Tab', 'File', 'save_project'), "(Ctrl+S)"), main_screen.save_project),
-            (Language.get('Tab', 'File', 'save_as_project'), lambda: main_screen.save_project(save_as=True)),
-            ((Language.get('Tab', 'File', 'close_project'), "(Ctrl+W)"), main_screen.close_project),
-            ("---", None),
-            (Language.get('Tab', 'File', 'exit'), main_screen.on_close)
-        ]
-    )
-    BtnFile.configure(command=MnuFile_toggle)
+        # FILE:
+        self.BtnFile = ctk.CTkButton(
+            self, text=Language.get('Tab', 'File', 'file'),
+            fg_color="transparent", hover_color=Theme.Tab.highlight,
+            font=("Segoe UI", 14),
+            text_color=Theme.Tab.text, corner_radius=0, width=80
+        )
+        self.BtnFile.pack(side="left", fill="y")
 
-    # TOOLS:
-    BtnTools = ctk.CTkButton(master_frame, text=Language.get('Tab', 'Tools', 'tools'),
-                             fg_color="transparent", hover_color=Theme.Tab.highlight,
-                             font=("Segoe UI", 14),
-                             text_color=Theme.Tab.text, corner_radius=0, width=100)
-    BtnTools.pack(side="left", fill="y")
+        self.MnuFile_toggle = self.create_dropdown_menu(
+            master_button=self.BtnFile,
+            options=[
+                (Language.get('Tab', 'File', 'about_FTR'), lambda: print("I love flerkens!")),
+                ("---", None),
+                ((Language.get('Tab', 'File', 'new_project'), "(Ctrl+N)"), main_screen.new_project),
+                ((Language.get('Tab', 'File', 'open_project'), "(Ctrl+O)"), main_screen.open_project),
+                ((Language.get('Tab', 'File', 'save_project'), "(Ctrl+S)"), main_screen.save_project),
+                (Language.get('Tab', 'File', 'save_as_project'), lambda: main_screen.save_project(save_as=True)),
+                ((Language.get('Tab', 'File', 'close_project'), "(Ctrl+W)"), main_screen.close_project),
+                ("---", None),
+                (Language.get('Tab', 'File', 'exit'), main_screen.on_close)
+            ]
+        )
+        self.BtnFile.configure(command=self.MnuFile_toggle)
 
-    MnuTools_toggle = create_dropdown_menu(
-        main_screen=main_screen,
-        master_frame=master_frame,
-        master_button=BtnTools,
-        options=[
-            (Language.get('Tab', 'Tools', 'flerken 1'), lambda: None),
-            (Language.get('Tab', 'Tools', 'flerken 2'), lambda: None),
-            (Language.get('Tab', 'Tools', 'flerken 3'), lambda: None)
-        ]
-    )
-    BtnTools.configure(command=MnuTools_toggle)
+        # TOOLS:
+        self.BtnTools = ctk.CTkButton(
+            self, text=Language.get('Tab', 'Tools', 'tools'),
+            fg_color="transparent", hover_color=Theme.Tab.highlight,
+            font=("Segoe UI", 14),
+            text_color=Theme.Tab.text, corner_radius=0, width=100
+        )
+        self.BtnTools.pack(side="left", fill="y")
 
-    # OPTIONS:
-    BtnOptions = ctk.CTkButton(master_frame, text=Language.get('Tab', 'Options', 'options'),
-                               fg_color="transparent", hover_color=Theme.Tab.highlight,
-                               font=("Segoe UI", 14),
-                               text_color=Theme.Tab.text, corner_radius=0, width=100)
-    BtnOptions.pack(side="left", fill="y")
+        self.MnuTools_toggle = self.create_dropdown_menu(
+            master_button=self.BtnTools,
+            options=[
+                (Language.get('Tab', 'Tools', 'flerken 1'), lambda: None),
+                (Language.get('Tab', 'Tools', 'flerken 2'), lambda: None),
+                (Language.get('Tab', 'Tools', 'flerken 3'), lambda: None)
+            ]
+        )
+        self.BtnTools.configure(command=self.MnuTools_toggle)
 
-    MnuOptions_toggle = create_dropdown_menu(
-        main_screen=main_screen,
-        master_frame=master_frame,
-        master_button=BtnOptions,
-        options=[
-            ((Language.get('Tab', 'Options', 'language'), ">"), lambda: None),
-            ("Item 2", lambda: None),
-            ("Item 3", lambda: None)
-        ]
-    )
-    BtnOptions.configure(command=MnuOptions_toggle)
+        # OPTIONS:
+        self.BtnOptions = ctk.CTkButton(
+            self, text=Language.get('Tab', 'Options', 'options'),
+            fg_color="transparent", hover_color=Theme.Tab.highlight,
+            font=("Segoe UI", 14),
+            text_color=Theme.Tab.text, corner_radius=0, width=100
+        )
+        self.BtnOptions.pack(side="left", fill="y")
 
+        self.MnuOptions_toggle = self.create_dropdown_menu(
+            master_button=self.BtnOptions,
+            options=[
+                ((Language.get('Tab', 'Options', 'language'), ">"), lambda: None),
+                ("Item 2", lambda: None),
+                ("Item 3", lambda: None)
+            ]
+        )
+        self.BtnOptions.configure(command=self.MnuOptions_toggle)
 
-def create_dropdown_menu(main_screen: ctk.CTkToplevel,
-                         master_frame: ctk.CTkFrame,
-                         master_button: ctk.CTkButton,
-                         options: list[tuple[str | tuple[str, str], callable]],
-                         width: int = 200):
-    """
-    Creates a custom dropdown menu below a button.
+    def create_dropdown_menu(
+            self,
+            master_button: ctk.CTkButton,
+            options: list[tuple[str | tuple[str, str], callable]],
+            width: int = 200
+    ):
+        """
+        Creates a custom dropdown menu below a button.
 
-    :param main_screen: MainScreen
-    :param master_frame: CTkFrame that the button belongs
-    :param master_button: CTkButton that triggers the menu
-    :param options: Tuple list (text, callback_function)
-    :param width: Dropdown menu width
-    :return: Nothing
-    """
-    menu = ctk.CTkFrame(main_screen, fg_color=Theme.Tab.menu, corner_radius=4, border_width=0)
-    menu.place_forget()
+        :param master_button: CTkButton that triggers the menu
+        :param options: Tuple list (text, callback_function)
+        :param width: Dropdown menu width
+        :return: Nothing
+        """
+        menu = ctk.CTkFrame(self.main_screen, fg_color=Theme.Tab.menu, corner_radius=4, border_width=0)
+        menu.place_forget()
 
-    for text, command in options:
-        if text == "---":
-            sep = tk.Canvas(menu, bg=Theme.Tab.secondary, highlightthickness=0, height=2)
-            sep.pack(fill="x", expand=True)
-        else:
-            btn = DualTextButton(menu, text=text, command=lambda cmd=command: [menu.place_forget(), cmd()],
-                                 font=("Segoe UI", 14), fg_color="transparent", hover_color=Theme.Tab.highlight,
-                                 text_color=Theme.Tab.text, corner_radius=0)
-            btn.pack(fill="x", expand=True, pady=0)
+        for text, command in options:
+            if text == "---":
+                sep = tk.Canvas(menu, bg=Theme.Tab.secondary, highlightthickness=0, height=2)
+                sep.pack(fill="x", expand=True)
+            else:
+                btn = DualTextButton(menu, text=text, command=lambda cmd=command: [menu.place_forget(), cmd()],
+                                     font=("Segoe UI", 14), fg_color="transparent", hover_color=Theme.Tab.highlight,
+                                     text_color=Theme.Tab.text, corner_radius=0)
+                btn.pack(fill="x", expand=True, pady=0)
 
-    def toggle_menu():
-        if (master_frame.active_menu and master_frame.active_menu is not menu) or not master_frame.active_menu:
-            if master_frame.active_menu:
-                master_frame.active_menu.place_forget()
-            x = master_button.winfo_rootx() - main_screen.winfo_rootx()
-            y = master_button.winfo_rooty() - main_screen.winfo_rooty() + master_button.winfo_height()
+        def toggle_menu():
+            if (self.active_menu and self.active_menu is not menu) or not self.active_menu:
+                if self.active_menu:
+                    self.active_menu.place_forget()
+                x = master_button.winfo_rootx() - self.main_screen.winfo_rootx()
+                y = master_button.winfo_rooty() - self.main_screen.winfo_rooty() + master_button.winfo_height()
 
-            menu.place(x=x, y=y)
-            menu.lift()
+                menu.place(x=x, y=y)
+                menu.lift()
 
-            height = menu.winfo_reqheight()
-            menu.pack_propagate(False)
-            menu.configure(width=width)
-            menu.configure(height=height)
+                height = menu.winfo_reqheight()
+                menu.pack_propagate(False)
+                menu.configure(width=width)
+                menu.configure(height=height)
 
-            main_screen.bind_all("<Button-1>", on_click)
-            main_screen.bind_all("<Escape>", hide_menu)
+                self.main_screen.bind_all("<Button-1>", on_click)
+                self.main_screen.bind_all("<Escape>", hide_menu)
 
-            master_frame.active_menu = menu
-        else:
+                self.active_menu = menu
+            else:
+                hide_menu()
+
+        def on_click(event):
+            obj = event.widget
+            while not isinstance(obj, ctk.CTkFrame):
+                obj = obj.master  # go to the master frame
+            if str(obj) == str(self):
+                return  # clicked in the tab frame
             hide_menu()
 
-    def on_click(event):
-        obj = event.widget
-        while type(obj) is not ctk.CTkFrame:
-            obj = obj.master  # go to the master frame
-        if str(obj) == str(master_frame):
-            return  # clicked in the tab frame
-        hide_menu()
+        def hide_menu(event=None):
+            if self.active_menu:
+                self.active_menu.place_forget()
+                self.main_screen.unbind_all("<Button-1>")
+                self.main_screen.unbind_all("<Escape>")
+                self.active_menu = None
 
-    def hide_menu(event=None):
-        if master_frame.active_menu:
-            master_frame.active_menu.place_forget()
-            main_screen.unbind_all("<Button-1>")
-            main_screen.unbind_all("<Escape>")
-            master_frame.active_menu = None
-
-    return toggle_menu
+        return toggle_menu
 
 
 class DualTextButton(ctk.CTkFrame):

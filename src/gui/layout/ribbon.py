@@ -4,26 +4,34 @@ import os
 
 from config import Settings, Theme
 from gui.tool_tip import CTkToolTip
-from gui.layout.sidebar import section_editor  # flerken
+from project import Project
 from manager import Language
 
-__all__ = ["create_ribbon"]
+__all__ = ["Ribbon"]
 
 
-def create_ribbon(app, main_screen, master_frame: ctk.CTkFrame):
-    # lbl = ctk.CTkLabel(master_frame, text="Ribbon", text_color=Theme.Ribbon.text)
-    # lbl.pack(side="left", padx=10)
-    
-    img_path = os.path.abspath(os.path.join(Settings.IMAGES_DIR, "section.png"))
-    img_pil = Image.open(img_path)
-    img = ctk.CTkImage(img_pil, size=(40, 40))
-    BtnSection = ctk.CTkButton(master_frame, text="", image=img, cursor="hand2",
-                               fg_color="transparent", hover_color=Theme.Ribbon.highlight,
-                               corner_radius=0, width=master_frame.winfo_height(),
-                               command=None)
-    BtnSection.pack(side="left", fill="y")
-    CTkToolTip(BtnSection, Language.get('Ribbon', 'section_properties'))
+class Ribbon(ctk.CTkFrame):
+    def __init__(self, app, main_screen, project: Project):
+        super().__init__(main_screen, fg_color=Theme.Ribbon.background, corner_radius=0, height=40)
+        self.pack_propagate(False)  # Prevents the Frame from adjusting to the content
+        self.app = app
+        self.main_screen = main_screen
 
-    # BtnAddNode...
+        # self.lbl = ctk.CTkLabel(self, text="Ribbon", text_color=Theme.Ribbon.text)
+        # self.lbl.pack(side="left", padx=10)
 
-    # BtnAddLoad...
+        img_path = os.path.abspath(os.path.join(Settings.IMAGES_DIR, "section.png"))
+        img_pil = Image.open(img_path)
+        img = ctk.CTkImage(img_pil, size=(40, 40))
+        self.BtnSection = ctk.CTkButton(
+            self, text="", image=img, cursor="hand2",
+            fg_color="transparent", hover_color=Theme.Ribbon.highlight,
+            corner_radius=0, width=self.winfo_height(),
+            command=self.main_screen.FrmSideBar.section_editor  # flerken
+        )
+        self.BtnSection.pack(side="left", fill="y")
+        CTkToolTip(self.BtnSection, Language.get('Ribbon', 'section_properties'))
+
+        # BtnAddNode...
+
+        # BtnAddLoad...

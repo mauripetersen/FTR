@@ -19,27 +19,20 @@ class MainScreen(ctk.CTkToplevel):
         self.project: Project | None = Project()
 
         # Tab (top menu)
-        self.FrmTab = ctk.CTkFrame(self, fg_color=Theme.Tab.background, corner_radius=0)
+        self.FrmTab = tab.Tab(self.app, self)
         self.FrmTab.pack(side="top", fill="x")
-        tab.create_tab(self.app, self, self.FrmTab)
 
         # Sidebar (side menu)
-        self.FrmSideBar = ctk.CTkFrame(self, fg_color=Theme.SideBar.background, corner_radius=0, width=300)
-        self.FrmSideBar.pack_propagate(False)  # Prevents the Frame from adjusting to the content
+        self.FrmSideBar = sidebar.SideBar(self.app, self, self.project)
         self.FrmSideBar.pack(side="left", fill="y")
-        sidebar.create_sidebar(self.app, self, self.FrmSideBar)
 
         # Ribbon (tools menu)
-        self.FrmRibbon = ctk.CTkFrame(self, fg_color=Theme.Ribbon.background, corner_radius=0, height=40)
-        self.FrmRibbon.pack_propagate(False)  # Prevents the Frame from adjusting to the content
+        self.FrmRibbon = ribbon.Ribbon(self.app, self, self.project)
         self.FrmRibbon.pack(side="top", fill="x")
-        ribbon.create_ribbon(self.app, self, self.FrmRibbon)
 
         # Status bar
-        self.FrmStatusBar = ctk.CTkFrame(self, fg_color=Theme.StatusBar.background, corner_radius=0, height=30)
-        self.FrmStatusBar.pack_propagate(False)  # Prevents the Frame from adjusting to the content
+        self.FrmStatusBar = statusbar.StatusBar(self.app, self)
         self.FrmStatusBar.pack(side="bottom", fill="x")
-        statusbar.create_statusbar(self.app, self, self.FrmStatusBar)
 
         # Main graphical area (CAD)
         self.FrmCAD = ctk.CTkFrame(self, corner_radius=0)
@@ -78,9 +71,11 @@ class MainScreen(ctk.CTkToplevel):
             self.create_cad_interface()
 
     def open_project(self):
-        project_path = filedialog.askopenfilename(title=Language.get('open_project_title'),
-                                                  initialdir=Settings.PROJECTS_DIR,
-                                                  filetypes=[(Language.get('ftr_projects'), "*.ftr")])
+        project_path = filedialog.askopenfilename(
+            title=Language.get('open_project_title'),
+            initialdir=Settings.PROJECTS_DIR,
+            filetypes=[(Language.get('ftr_projects'), "*.ftr")]
+        )
         if not project_path:
             return
         if self.close_project(message=Language.get('Quest', 'save_before_open_project')):
@@ -96,11 +91,13 @@ class MainScreen(ctk.CTkToplevel):
             self.project.save_data()
         else:
             title = Language.get('save_as_project_title') if save_as else Language.get('save_project_title')
-            project_path = filedialog.asksaveasfilename(title=title,
-                                                        initialdir=Settings.PROJECTS_DIR,
-                                                        filetypes=[(Language.get('ftr_projects'), "*.ftr")],
-                                                        initialfile="Untitled",
-                                                        defaultextension=".ftr")
+            project_path = filedialog.asksaveasfilename(
+                title=title,
+                initialdir=Settings.PROJECTS_DIR,
+                filetypes=[(Language.get('ftr_projects'), "*.ftr")],
+                initialfile="Untitled",
+                defaultextension=".ftr"
+            )
             if not project_path:
                 return
             self.project.path = project_path
@@ -128,7 +125,7 @@ class MainScreen(ctk.CTkToplevel):
             self.cad_interface = None
         self.project = None
         self.update_title()
-        self.FrmStatusBar.LblPos.configure(text="")  # flerken: verificar isso depois
+        self.FrmStatusBar.LblPos.configure(text="")
         return True
 
     def update_title(self):

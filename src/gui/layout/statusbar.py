@@ -3,19 +3,26 @@ import customtkinter as ctk
 from config import Theme
 from manager import Language
 
-__all__ = ["create_statusbar"]
+__all__ = ["StatusBar"]
 
 
-def create_statusbar(app, main_screen, master_frame):
-    master_frame.LblPos = ctk.CTkLabel(master_frame, text="Pos=(x, y)",
-                                       text_color=Theme.StatusBar.text, font=("Segoe UI", 14))
-    master_frame.LblPos.pack(side="left", padx=10)
+class StatusBar(ctk.CTkFrame):
+    def __init__(self, app, main_screen):
+        super().__init__(main_screen, fg_color=Theme.StatusBar.background, corner_radius=0, height=30)
+        self.pack_propagate(False)  # Prevents the Frame from adjusting to the content
+        self.app = app
+        self.main_screen = main_screen
 
-    master_frame.VarGrid = ctk.BooleanVar(value=True)
-    master_frame.ChkGrid = ctk.CTkCheckBox(master_frame, text=Language.get('StatusBar', 'grid'),
-                                           text_color=Theme.StatusBar.text, font=("Segoe UI", 14),
-                                           corner_radius=12, checkbox_width=24, checkbox_height=24, width=70,
-                                           hover_color=Theme.StatusBar.highlight,
-                                           fg_color=Theme.StatusBar.highlight,
-                                           variable=master_frame.VarGrid, onvalue=True, offvalue=False)
-    master_frame.ChkGrid.pack(side="right", padx=5)
+        self.LblPos = ctk.CTkLabel(self, text="Pos=(x, y)", text_color=Theme.StatusBar.text, font=("Segoe UI", 14))
+        self.LblPos.pack(side="left", padx=10)
+
+        self.VarGrid = ctk.BooleanVar(value=True)
+        self.ChkGrid = ctk.CTkCheckBox(
+            self, text=Language.get('StatusBar', 'grid'),
+            text_color=Theme.StatusBar.text, font=("Segoe UI", 14),
+            corner_radius=12, checkbox_width=24, checkbox_height=24, width=70,
+            hover_color=Theme.StatusBar.highlight,
+            fg_color=Theme.StatusBar.highlight,
+            variable=self.VarGrid, onvalue=True, offvalue=False
+        )
+        self.ChkGrid.pack(side="right", padx=5)
