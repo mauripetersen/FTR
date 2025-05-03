@@ -20,6 +20,7 @@ class Ribbon(ctk.CTkFrame):
         # self.lbl = ctk.CTkLabel(self, text="Ribbon", text_color=Theme.Ribbon.text)
         # self.lbl.pack(side="left", padx=10)
 
+        # Section Properties:
         img_path = os.path.abspath(os.path.join(Settings.IMAGES_DIR, "section.png"))
         img_pil = Image.open(img_path)
         img = ctk.CTkImage(img_pil, size=(40, 40))
@@ -30,8 +31,19 @@ class Ribbon(ctk.CTkFrame):
             command=self.main_screen.FrmSideBar.section_editor  # flerken
         )
         self.BtnSection.pack(side="left", fill="y")
-        CTkToolTip(self.BtnSection, Language.get('Ribbon', 'section_properties'))
+        CTkToolTip(self.BtnSection, Language.get('MainScreen', 'Ribbon', 'section_properties'))
 
-        # BtnAddNode...
+        # Add Node:
+        img_path = os.path.abspath(os.path.join(Settings.IMAGES_DIR, "node.png"))
+        img_pil = Image.open(img_path)
+        img = ctk.CTkImage(img_pil, size=(40, 40))
+        self.BtnNode = ctk.CTkButton(
+            self, text="", image=img, cursor="hand2",
+            fg_color="transparent", hover_color=Theme.Ribbon.highlight,
+            corner_radius=0, width=self.winfo_height(),
+            command=lambda: print(app.settings_window)  # flerken
+        )
+        self.BtnNode.pack(side="left", fill="y")
+        CTkToolTip(self.BtnNode, Language.get('Ribbon', 'add_node'))
 
         # BtnAddLoad...

@@ -18,7 +18,7 @@ class StatusBar(ctk.CTkFrame):
 
         self.VarGrid = ctk.BooleanVar(value=True)
         self.ChkGrid = ctk.CTkCheckBox(
-            self, text=Language.get('StatusBar', 'grid'),
+            self, text=Language.get('MainScreen', 'StatusBar', 'grid'),
             text_color=Theme.StatusBar.text, font=("Segoe UI", 14),
             corner_radius=12, checkbox_width=24, checkbox_height=24, width=70,
             hover_color=Theme.StatusBar.highlight,

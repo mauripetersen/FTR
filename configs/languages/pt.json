@@ -4,33 +4,41 @@
 	"save_project_title": "Salvar Projeto FTR",
 	"save_as_project_title": "Salvar Como Projeto FTR",
 	"ftr_projects": "Projetos FTR",
-	"Ribbon": {
-		"section_properties": "Propriedades da Seção"
-	},
-	"StatusBar": {
-		"grid": "Malha"
-	},
-	"Tab": {
-		"File": {
-			"file": "Arquivo",
-			"about_FTR": "Sobre o FTR",
-			"new_project": "Novo...",
-			"open_project": "Abrir...",
-			"save_project": "Salvar",
-			"save_as_project": "Salvar Como...",
-			"close_project": "Fechar Projeto",
-			"exit": "Sair"
+	"MainScreen": {
+		"Ribbon": {
+			"section_properties": "Propriedades da Seção",
+			"add_node": "Adicionar Node"
 		},
-		"Tools": {
-			"tools": "Ferramentas",
-			"flerken 1": "Isostática",
-			"flerken 2": "Hiperestática",
-			"flerken 3": "Normas NBR"
+		"StatusBar": {
+			"grid": "Malha"
 		},
-		"Options": {
-			"options": "Opções",
-			"language": "Idioma"
+		"Tab": {
+			"File": {
+				"file": "Arquivo",
+				"about_FTR": "Sobre o FTR",
+				"new_project": "Novo...",
+				"open_project": "Abrir...",
+				"save_project": "Salvar",
+				"save_as_project": "Salvar Como...",
+				"close_project": "Fechar Projeto",
+				"exit": "Sair"
+			},
+			"Tools": {
+				"tools": "Ferramentas",
+				"flerken 1": "Isostática",
+				"flerken 2": "Hiperestática",
+				"flerken 3": "Normas NBR"
+			},
+			"Options": {
+				"options": "Opções",
+				"settings": "Configurações..."
+			}
 		}
+	},
+	"SettingsScreen": {
+		"title": "FTR - Configurações",
+		"btn_ok": "OK",
+		"btn_apply": "Aplicar"
 	},
 	"Error": {
 		"detect_scale": "Falha ao detectar a escala do sistema",

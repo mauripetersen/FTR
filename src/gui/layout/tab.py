@@ -17,61 +17,68 @@ class Tab(ctk.CTkFrame):
 
         # FILE:
         self.BtnFile = ctk.CTkButton(
-            self, text=Language.get('Tab', 'File', 'file'),
+            self, text=Language.get('MainScreen', 'Tab', 'File', 'file'),
             fg_color="transparent", hover_color=Theme.Tab.highlight,
             font=("Segoe UI", 14),
-            text_color=Theme.Tab.text, corner_radius=0, width=80
+            text_color=Theme.Tab.text, corner_radius=0, width=0
         )
         self.BtnFile.pack(side="left", fill="y")
+        self.update_idletasks()
+        self.BtnFile.configure(width=self.BtnFile.winfo_reqwidth() + 40)
 
         self.MnuFile_toggle = self.create_dropdown_menu(
             master_button=self.BtnFile,
             options=[
-                (Language.get('Tab', 'File', 'about_FTR'), lambda: print("I love flerkens!")),
+                (Language.get('MainScreen', 'Tab', 'File', 'about_FTR'), lambda: print("I love flerkens!")),
                 ("---", None),
-                ((Language.get('Tab', 'File', 'new_project'), "(Ctrl+N)"), main_screen.new_project),
-                ((Language.get('Tab', 'File', 'open_project'), "(Ctrl+O)"), main_screen.open_project),
-                ((Language.get('Tab', 'File', 'save_project'), "(Ctrl+S)"), main_screen.save_project),
-                (Language.get('Tab', 'File', 'save_as_project'), lambda: main_screen.save_project(save_as=True)),
-                ((Language.get('Tab', 'File', 'close_project'), "(Ctrl+W)"), main_screen.close_project),
+                ((Language.get('MainScreen', 'Tab', 'File', 'new_project'), "(Ctrl+N)"), main_screen.new_project),
+                ((Language.get('MainScreen', 'Tab', 'File', 'open_project'), "(Ctrl+O)"), main_screen.open_project),
+                ((Language.get('MainScreen', 'Tab', 'File', 'save_project'), "(Ctrl+S)"), main_screen.save_project),
+                (Language.get('MainScreen', 'Tab', 'File', 'save_as_project'),
+                 lambda: main_screen.save_project(save_as=True)),
+                ((Language.get('MainScreen', 'Tab', 'File', 'close_project'), "(Ctrl+W)"), main_screen.close_project),
                 ("---", None),
-                (Language.get('Tab', 'File', 'exit'), main_screen.on_close)
+                (Language.get('MainScreen', 'Tab', 'File', 'exit'), main_screen.on_close)
             ]
         )
         self.BtnFile.configure(command=self.MnuFile_toggle)
 
         # TOOLS:
         self.BtnTools = ctk.CTkButton(
-            self, text=Language.get('Tab', 'Tools', 'tools'),
+            self, text=Language.get('MainScreen', 'Tab', 'Tools', 'tools'),
             fg_color="transparent", hover_color=Theme.Tab.highlight,
             font=("Segoe UI", 14),
-            text_color=Theme.Tab.text, corner_radius=0, width=100
+            text_color=Theme.Tab.text, corner_radius=0, width=0
         )
         self.BtnTools.pack(side="left", fill="y")
+        self.update_idletasks()
+        self.BtnTools.configure(width=self.BtnTools.winfo_reqwidth() + 40)
 
         self.MnuTools_toggle = self.create_dropdown_menu(
             master_button=self.BtnTools,
             options=[
-                (Language.get('Tab', 'Tools', 'flerken 1'), lambda: None),
-                (Language.get('Tab', 'Tools', 'flerken 2'), lambda: None),
-                (Language.get('Tab', 'Tools', 'flerken 3'), lambda: None)
+                (Language.get('MainScreen', 'Tab', 'Tools', 'flerken 1'), lambda: None),
+                (Language.get('MainScreen', 'Tab', 'Tools', 'flerken 2'), lambda: None),
+                (Language.get('MainScreen', 'Tab', 'Tools', 'flerken 3'), lambda: None)
             ]
         )
         self.BtnTools.configure(command=self.MnuTools_toggle)
 
         # OPTIONS:
         self.BtnOptions = ctk.CTkButton(
-            self, text=Language.get('Tab', 'Options', 'options'),
+            self, text=Language.get('MainScreen', 'Tab', 'Options', 'options'),
             fg_color="transparent", hover_color=Theme.Tab.highlight,
             font=("Segoe UI", 14),
-            text_color=Theme.Tab.text, corner_radius=0, width=100
+            text_color=Theme.Tab.text, corner_radius=0, width=0
         )
         self.BtnOptions.pack(side="left", fill="y")
+        self.update_idletasks()
+        self.BtnOptions.configure(width=self.BtnOptions.winfo_reqwidth() + 40)
 
         self.MnuOptions_toggle = self.create_dropdown_menu(
             master_button=self.BtnOptions,
             options=[
-                ((Language.get('Tab', 'Options', 'language'), ">"), lambda: None),
+                (Language.get('MainScreen', 'Tab', 'Options', 'settings'), app.open_settings),
                 ("Item 2", lambda: None),
                 ("Item 3", lambda: None)
             ]
