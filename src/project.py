@@ -4,7 +4,7 @@ import json
 import math
 import os
 
-from config import __version__, Settings, SectionType, SupportType, LoadType
+from config import __version__, SectionType, LoadType, SupportType, Settings
 from manager import Language
 
 __all__ = ["Project",

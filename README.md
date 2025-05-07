@@ -6,8 +6,8 @@
 
 ## Descrição
 
-**"Cálculo da Tração do Ferro"**, do Latim _**"Ferri Tractus Ratio"**_, ou apenas **FTR**, é uma Ferramenta Computacional
-desenvolvida em [Python](https://www.python.org) que auxilia o Engenheiro Civil no cálculo de vigas contínuas hiperestáticas protendidas.
+**"O Cálculo da Tração do Ferro"**, do Latim _**"Ferri Tractus Ratio"**_, ou apenas **FTR**, é uma Ferramenta Computacional
+desenvolvida em [Python](https://www.python.org) que auxilia o Engenheiro Civil no cálculo de vigas contínuas em concreto armado.
 
 O FTR foi desenvolvido como Trabalho de Conclusão de Curso do aluno Maurício Petersen Pithon, em 2025/1
 

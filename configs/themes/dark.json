@@ -5,35 +5,41 @@
 	"highlight": "#7f5af0",
 	"secondary": "#72757e",
 	"tertiary": "#2cb67d",
-	"Tab": {
-		"background": "#101214",
-		"text": "#ffffff",
-		"highlight": "#7f5af0",
-		"menu": "#242424",
-		"secondary": "#2cb67d"
+	"MainScreen": {
+		"Tab": {
+			"background": "#101214",
+			"text": "#ffffff",
+			"highlight": "#7f5af0",
+			"menu": "#242424",
+			"secondary": "#2cb67d"
+		},
+		"SideBar": {
+			"background": "#21252b",
+			"text": "#94a1b2",
+			"highlight": "#7f5af0"
+		},
+		"Ribbon": {
+			"background": "#5c6773",
+			"text": "#ffffff",
+			"highlight": "#7f5af0"
+		},
+		"StatusBar": {
+			"background": "#72757e",
+			"text": "#ffffff",
+			"highlight": "#7f5af0"
+		},
+		"CAD": {
+			"background": "#16161a",
+			"grid": ["#404047", "#28282f"],
+			"select_rect": "#2cb67d",
+			"spans": "#ffffff",
+			"nodes": ["#7f5af0", "#ff0000"],
+			"supports": "#cccccc",
+			"loads": ["#1da9f0", "#ff0000"]
+		}
 	},
-	"SideBar": {
-		"background": "#21252b",
-		"text": "#94a1b2",
-		"highlight": "#7f5af0"
+	"SettingsScreen": {
+		"background": "#000000",
+		"titlebar": "#1a1a1a"
 	},
-	"Ribbon": {
-		"background": "#5c6773",
-		"text": "#ffffff",
-		"highlight": "#7f5af0"
-	},
-	"StatusBar": {
-		"background": "#72757e",
-		"text": "#ffffff",
-		"highlight": "#7f5af0"
-	},
-	"CAD": {
-		"background": "#16161a",
-		"grid": ["#404047", "#28282f"],
-		"select_rect": "#2cb67d",
-		"spans": "#ffffff",
-		"nodes": ["#7f5af0", "#ff0000"],
-		"supports": "#cccccc",
-		"loads": ["#1da9f0", "#ff0000"]
-	}
 }

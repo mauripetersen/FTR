@@ -126,6 +126,7 @@ class MainScreen(ctk.CTkToplevel):
         self.project = None
         self.update_title()
         self.FrmStatusBar.LblPos.configure(text="")
+        self.after(100, self.focus)  # flerken: verificar isso
         return True
 
     def update_title(self):

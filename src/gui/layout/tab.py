@@ -9,7 +9,7 @@ __all__ = ["Tab"]
 
 class Tab(ctk.CTkFrame):
     def __init__(self, app, main_screen):
-        super().__init__(main_screen, fg_color=Theme.Tab.background, corner_radius=0)
+        super().__init__(main_screen, fg_color=Theme.MainScreen.Tab.background, corner_radius=0)
         self.app = app
         self.main_screen = main_screen
 
@@ -18,9 +18,9 @@ class Tab(ctk.CTkFrame):
         # FILE:
         self.BtnFile = ctk.CTkButton(
             self, text=Language.get('MainScreen', 'Tab', 'File', 'file'),
-            fg_color="transparent", hover_color=Theme.Tab.highlight,
+            fg_color="transparent", hover_color=Theme.MainScreen.Tab.highlight,
             font=("Segoe UI", 14),
-            text_color=Theme.Tab.text, corner_radius=0, width=0
+            text_color=Theme.MainScreen.Tab.text, corner_radius=0, width=0
         )
         self.BtnFile.pack(side="left", fill="y")
         self.update_idletasks()
@@ -46,9 +46,9 @@ class Tab(ctk.CTkFrame):
         # TOOLS:
         self.BtnTools = ctk.CTkButton(
             self, text=Language.get('MainScreen', 'Tab', 'Tools', 'tools'),
-            fg_color="transparent", hover_color=Theme.Tab.highlight,
+            fg_color="transparent", hover_color=Theme.MainScreen.Tab.highlight,
             font=("Segoe UI", 14),
-            text_color=Theme.Tab.text, corner_radius=0, width=0
+            text_color=Theme.MainScreen.Tab.text, corner_radius=0, width=0
         )
         self.BtnTools.pack(side="left", fill="y")
         self.update_idletasks()
@@ -67,9 +67,9 @@ class Tab(ctk.CTkFrame):
         # OPTIONS:
         self.BtnOptions = ctk.CTkButton(
             self, text=Language.get('MainScreen', 'Tab', 'Options', 'options'),
-            fg_color="transparent", hover_color=Theme.Tab.highlight,
+            fg_color="transparent", hover_color=Theme.MainScreen.Tab.highlight,
             font=("Segoe UI", 14),
-            text_color=Theme.Tab.text, corner_radius=0, width=0
+            text_color=Theme.MainScreen.Tab.text, corner_radius=0, width=0
         )
         self.BtnOptions.pack(side="left", fill="y")
         self.update_idletasks()
@@ -99,17 +99,18 @@ class Tab(ctk.CTkFrame):
         :param width: Dropdown menu width
         :return: Nothing
         """
-        menu = ctk.CTkFrame(self.main_screen, fg_color=Theme.Tab.menu, corner_radius=4, border_width=0)
+        menu = ctk.CTkFrame(self.main_screen, fg_color=Theme.MainScreen.Tab.menu, corner_radius=4, border_width=0)
         menu.place_forget()
 
         for text, command in options:
             if text == "---":
-                sep = tk.Canvas(menu, bg=Theme.Tab.secondary, highlightthickness=0, height=2)
+                sep = tk.Canvas(menu, bg=Theme.MainScreen.Tab.secondary, highlightthickness=0, height=2)
                 sep.pack(fill="x", expand=True)
             else:
                 btn = DualTextButton(menu, text=text, command=lambda cmd=command: [menu.place_forget(), cmd()],
-                                     font=("Segoe UI", 14), fg_color="transparent", hover_color=Theme.Tab.highlight,
-                                     text_color=Theme.Tab.text, corner_radius=0)
+                                     font=("Segoe UI", 14), fg_color="transparent",
+                                     hover_color=Theme.MainScreen.Tab.highlight,
+                                     text_color=Theme.MainScreen.Tab.text, corner_radius=0)
                 btn.pack(fill="x", expand=True, pady=0)
 
         def toggle_menu():

@@ -15,22 +15,22 @@ class SettingsScreen(ctk.CTkToplevel):
         self.size = (800, 500)
         configure_TopLevel(self, maximized=False, win_size=self.size, flat=True)
 
-        self.titlebar = ctk.CTkFrame(self, height=30, fg_color="#1a1a1a", corner_radius=0)
-        self.titlebar.pack(fill="x", side="top")
+        self.FrmTitleBar = ctk.CTkFrame(self, height=30, fg_color="#1a1a1a", corner_radius=0)
+        self.FrmTitleBar.pack(fill="x", side="top")
 
         self.LblTitle = ctk.CTkLabel(
-            self.titlebar,
+            self.FrmTitleBar,
             text=f"{Settings.FTR_NAME[1]} - {Language.get('SettingsScreen', 'title')}",
             text_color="#ffffff"
         )
         self.LblTitle.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.BtnClose = ctk.CTkButton(self.titlebar, text="✕", width=30, height=30, corner_radius=0,
+        self.BtnClose = ctk.CTkButton(self.FrmTitleBar, text="✕", width=30, height=30, corner_radius=0,
                                       fg_color="transparent", hover_color="#ff5555",
                                       command=app.close_settings)
         self.BtnClose.pack(side="right", padx=0)
 
-        self.BtnMinimize = ctk.CTkButton(self.titlebar, text="—", width=30, height=30, corner_radius=0,
+        self.BtnMinimize = ctk.CTkButton(self.FrmTitleBar, text="—", width=30, height=30, corner_radius=0,
                                          fg_color="transparent", hover_color="#444444",
                                          command=app.withdraw_settings)
         self.BtnMinimize.pack(side="right", padx=0)
@@ -64,9 +64,9 @@ class SettingsScreen(ctk.CTkToplevel):
         self.BtnApply.pack(side="right", padx=0)
 
         self.pan_start = None
-        self.titlebar.bind("<Button-1>", self.mouse_down_left)
-        self.titlebar.bind("<B1-Motion>", self.mouse_move_left)
-        self.titlebar.bind("<ButtonRelease-1>", self.mouse_up_left)
+        self.FrmTitleBar.bind("<Button-1>", self.mouse_down_left)
+        self.FrmTitleBar.bind("<B1-Motion>", self.mouse_move_left)
+        self.FrmTitleBar.bind("<ButtonRelease-1>", self.mouse_up_left)
 
         self.protocol("WM_DELETE_WINDOW", app.close_settings)
 

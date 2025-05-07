@@ -1,11 +1,11 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
-from PIL import Image, ImageDraw, ImageTk
+from PIL import ImageTk
 import math
 import copy
 
-from config import Settings, Theme, LoadType, SupportType
+from config import Settings, Theme
 from project import Project, Support, Node, Load, PLLoad, DLLoad
 from gui.render import update_image
 from manager import Language
@@ -23,7 +23,7 @@ class CADInterface(ctk.CTkFrame):
         self.historical: list[Project] = [copy.deepcopy(self.project)]
         self.historical_ix: int = 0
 
-        self.canvas = tk.Canvas(self, bg=Theme.CAD.background, highlightthickness=0)
+        self.canvas = tk.Canvas(self, bg=Theme.MainScreen.CAD.background, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         self.view = View(scale_fac=1.1, ppm_0=100, P=(-5.0, 5.0))
 
@@ -35,20 +35,21 @@ class CADInterface(ctk.CTkFrame):
         self.select_rect_start = None
         self.pan_start = None
 
-        self.main_screen.bind("<Escape>", self.on_escape)
         self.main_screen.bind("<Control-a>", self.on_ctrl_a)
         self.main_screen.bind("<Control-y>", self.on_ctrl_y)
         self.main_screen.bind("<Control-z>", self.on_ctrl_z)
-        self.main_screen.bind("<Delete>", self.on_delete)
 
-        self.canvas.bind("<Motion>", self.mouse_motion)
-        self.canvas.bind("<Button-1>", self.mouse_down_left)
-        self.canvas.bind("<B1-Motion>", self.mouse_move_left)
-        self.canvas.bind("<ButtonRelease-1>", self.mouse_up_left)
-        self.canvas.bind("<Button-2>", self.mouse_down_middle)
-        self.canvas.bind("<B2-Motion>", self.mouse_move_middle)
-        self.canvas.bind("<ButtonRelease-2>", self.mouse_up_middle)
-        self.canvas.bind("<MouseWheel>", self.mouse_wheel)
+        self.main_screen.bind("<Delete>", self.on_delete)
+        self.main_screen.bind("<Escape>", self.on_escape)
+
+        self.canvas.bind("<Motion>", self.on_mouse_motion)
+        self.canvas.bind("<Button-1>", self.on_mouse_down_left)
+        self.canvas.bind("<B1-Motion>", self.on_mouse_move_left)
+        self.canvas.bind("<ButtonRelease-1>", self.on_mouse_up_left)
+        self.canvas.bind("<Button-2>", self.on_mouse_down_middle)
+        self.canvas.bind("<B2-Motion>", self.on_mouse_move_middle)
+        self.canvas.bind("<ButtonRelease-2>", self.on_mouse_up_middle)
+        self.canvas.bind("<MouseWheel>", self.on_mouse_wheel)
 
         self.update_all_images()
 
@@ -69,7 +70,7 @@ class CADInterface(ctk.CTkFrame):
     def on_delete(self, event):
         self.delete_selected()
 
-    def mouse_motion(self, event):
+    def on_mouse_motion(self, event):
         self.main_screen.FrmStatusBar.LblPos.configure(text=f"{self.to_model(event.x, event.y, 2)}")
 
         for node in self.project.nodes:
@@ -88,7 +89,7 @@ class CADInterface(ctk.CTkFrame):
 
         self.draw_canvas()
 
-    def mouse_down_left(self, event):
+    def on_mouse_down_left(self, event):
         flag_shift = event.state & 0x0001
         flag_ctrl = event.state & 0x0004
 
@@ -103,18 +104,18 @@ class CADInterface(ctk.CTkFrame):
         else:
             self.select_rect_start = (event.x, event.y)
 
-            # Creates the rectangle with equal initial coordinates
+            # Creates the rectangle with equal initial coordinates:
             self.select_rect = self.canvas.create_rectangle(*self.select_rect_start, *self.select_rect_start,
-                                                            outline=Theme.CAD.select_rect, width=1)
+                                                            outline=Theme.MainScreen.CAD.select_rect, width=1)
         self.draw_canvas()
 
-    def mouse_move_left(self, event):
+    def on_mouse_move_left(self, event):
         # Updates rectangle while dragging:
         if self.select_rect:
             self.canvas.coords(self.select_rect, *self.select_rect_start, event.x, event.y)
             self.canvas.tag_raise(self.select_rect)  # puts the select_rect in above
 
-    def mouse_up_left(self, event):
+    def on_mouse_up_left(self, event):
         if self.select_rect:
             x1, y1, x2, y2 = self.canvas.coords(self.select_rect)
 
@@ -130,16 +131,15 @@ class CADInterface(ctk.CTkFrame):
                 elif isinstance(load, DLLoad):
                     ...
 
-            # Remove the selection rectangle (by ID)
-            self.canvas.delete(self.select_rect)
+            self.canvas.delete(self.select_rect)  # Remove the selection rectangle (by ID)
             self.select_rect = None
         self.draw_canvas()
 
-    def mouse_down_middle(self, event):
+    def on_mouse_down_middle(self, event):
         self.canvas.configure(cursor="fleur")
         self.pan_start = (event.x, event.y)
 
-    def mouse_move_middle(self, event):
+    def on_mouse_move_middle(self, event):
         if self.pan_start is None:
             return
         dx, dy = event.x - self.pan_start[0], self.pan_start[1] - event.y
@@ -148,11 +148,11 @@ class CADInterface(ctk.CTkFrame):
         self.view.translate(dx, dy)
         self.draw_canvas()
 
-    def mouse_up_middle(self, event):
+    def on_mouse_up_middle(self, event):
         self.canvas.configure(cursor="arrow")
         self.pan_start = None
 
-    def mouse_wheel(self, event):
+    def on_mouse_wheel(self, event):
         Mz = self.to_model(event.x, event.y)
         self.view.zoom(Mz, event.delta)
         self.draw_canvas()
@@ -330,28 +330,33 @@ class CADInterface(ctk.CTkFrame):
                 for k in range(kx0, kx1 + 1):
                     p1 = self.to_screen(k * dx, (ky0 - 1) * dy)
                     p2 = self.to_screen(k * dx, (ky1 + 1) * dy)
-                    self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=Theme.CAD.grid[1], width=1))
+                    clr = Theme.MainScreen.CAD.grid[1]
+                    self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=clr, width=1))
 
                 # Horizontal lines:
                 for k in range(ky0, ky1 + 1):
                     p1 = self.to_screen((kx0 - 1) * dx, k * dy)
                     p2 = self.to_screen((kx1 + 1) * dx, k * dy)
-                    self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=Theme.CAD.grid[1], width=1))
+                    clr = Theme.MainScreen.CAD.grid[1]
+                    self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=clr, width=1))
 
                 # Y-Axis
                 p1 = self.to_screen(0, (ky0 - 1) * dy)
                 p2 = self.to_screen(0, (ky1 + 1) * dy)
-                self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=Theme.CAD.grid[0], width=2))
+                clr = Theme.MainScreen.CAD.grid[0]
+                self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=clr, width=2))
 
                 # X-Axis
                 p1 = self.to_screen((kx0 - 1) * dx, 0)
                 p2 = self.to_screen((kx1 + 1) * dx, 0)
-                self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=Theme.CAD.grid[0], width=2))
+                clr = Theme.MainScreen.CAD.grid[0]
+                self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=clr, width=2))
 
             for k in range(len(nodes) - 1):  # SPANS
                 p1 = self.to_screen(nodes[k].position, 0)
                 p2 = self.to_screen(nodes[k + 1].position, 0)
-                self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=Theme.CAD.spans, width=4))
+                clr = Theme.MainScreen.CAD.spans
+                self.image_garbage.append(self.canvas.create_line(*p1, *p2, fill=clr, width=4))
             for node in nodes:  # SUPPORTS
                 if node.support:
                     self.draw_element(node.support)

@@ -27,14 +27,14 @@ class CTkToolTip:
     def move(self, event):
         if self.tooltip_window:
             x = self.widget.winfo_pointerx() + 12
-            y = self.widget.winfo_pointery() + 12
+            y = self.widget.winfo_pointery() + 20
             self.tooltip_window.geometry(f"+{x}+{y}")
 
     def show_tooltip(self):
         if self.tooltip_window or not self.text:
             return
         x = self.widget.winfo_pointerx() + 12
-        y = self.widget.winfo_pointery() + 12
+        y = self.widget.winfo_pointery() + 20
         self.tooltip_window = tw = tk.Toplevel(self.widget)
         tw.wm_overrideredirect(True)
         tw.wm_geometry(f"+{x}+{y}")

@@ -6,7 +6,8 @@ import os
 
 __version__ = "1.0.0"
 
-__all__ = ["__version__", "SectionType", "SupportType", "LoadType",
+__all__ = ["__version__",
+           "SectionType", "SupportType", "LoadType",
            "Settings", "Theme"]
 
 
@@ -60,9 +61,9 @@ class Settings:
     LANGUAGES_DIR = os.path.join(CONFIGS_DIR, "languages")
     THEMES_DIR = os.path.join(CONFIGS_DIR, "themes")
 
-    FTR_NAME = ["FTR - Ferri Tractus Ratio",
+    FTR_NAME = ("FTR - Ferri Tensio Ratio",
                 "FTR",
-                "Ferri Tractus Ratio"]
+                "Ferri Tensio Ratio")
 
     settings_path = os.path.join(CONFIGS_DIR, "settings.json")
     language = "en"
@@ -82,7 +83,7 @@ class Settings:
                 cls.set_default()
                 cls.save()
         except Exception as e:
-            print(e)
+            raise RuntimeError(f"Error loading FTR settings: {e}")
 
     @classmethod
     def save(cls):
@@ -97,7 +98,7 @@ class Settings:
             with open(cls.settings_path, "w") as f:
                 f.write(json_str_with_tabs)
         except Exception as e:
-            print(e)
+            raise RuntimeError(f"Error saving FTR settings: {e}")
 
     @classmethod
     def set_default(cls):
@@ -114,54 +115,65 @@ class Theme:
     tertiary: str
 
     @dataclass
-    class Tab:
-        background: str
-        text: str
-        highlight: str
-        menu: str
-        secondary: str
+    class MainScreen:
+        @dataclass
+        class Tab:
+            background: str
+            text: str
+            highlight: str
+            menu: str
+            secondary: str
+
+        @dataclass
+        class SideBar:
+            background: str
+            text: str
+            highlight: str
+
+        @dataclass
+        class Ribbon:
+            background: str
+            text: str
+            highlight: str
+
+        @dataclass
+        class StatusBar:
+            background: str
+            text: str
+            highlight: str
+
+        @dataclass
+        class CAD:
+            background: str
+            grid: list[str]
+            select_rect: str
+            spans: str
+            nodes: list[str]
+            supports: str
+            loads: list[str]
 
     @dataclass
-    class SideBar:
+    class SettingsScreen:
         background: str
-        text: str
-        highlight: str
-
-    @dataclass
-    class Ribbon:
-        background: str
-        text: str
-        highlight: str
-
-    @dataclass
-    class StatusBar:
-        background: str
-        text: str
-        highlight: str
-
-    @dataclass
-    class CAD:
-        background: str
-        grid: list[str]
-        select_rect: str
-        spans: str
-        nodes: list[str]
-        supports: str
-        loads: list[str]
+        titlebar: str
 
     @classmethod
     def load(cls):
-        theme_path = os.path.join(Settings.THEMES_DIR, f"{Settings.theme}.json")
-        with open(theme_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        for key, val in data.items():
-            if isinstance(val, dict):
-                sub_cls = getattr(cls, key, None)
-                if sub_cls:
-                    for subkey, sub_val in val.items():
-                        setattr(sub_cls, subkey, sub_val)
-            else:
-                setattr(cls, key, val)
+        # flerken: arrumar isso:
+        try:
+            theme_path = os.path.join(Settings.THEMES_DIR, f"{Settings.theme}.json")
+            with open(theme_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            for key, val in data.items():
+                if isinstance(val, dict):
+                    sub_cls = getattr(cls, key, None)
+                    if sub_cls:
+                        for subkey, sub_val in val.items():
+                            setattr(sub_cls, subkey, sub_val)
+                else:
+                    setattr(cls, key, val)
+        except Exception as e:
+            raise RuntimeError(f"Error loading FTR Theme: {e}")
 
 
 Theme.load()
