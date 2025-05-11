@@ -2,12 +2,13 @@ from tkinter import messagebox
 import tkinter as tk
 import json
 import math
+import copy
 import os
 
 from config import __version__, SectionType, LoadType, SupportType, Settings
 from manager import Language
 
-__all__ = ["Project",
+__all__ = ["Project", "ProjectHolder",
            "Section", "SectionR", "SectionI", "SectionT",
            "Node", "Support",
            "Load", "PLLoad", "DLLoad"]
@@ -134,6 +135,69 @@ class Project:
             "loads": [load.to_dict() for load in self.loads],
             "metadata": self.metadata
         }
+
+    def check_integrity(self):
+        node_pos = [node.position for node in self.nodes]
+        if node_pos:
+            min_pos, max_pos = min(node_pos), max(node_pos)
+
+            if min_pos != 0:
+                for node in self.nodes:
+                    node.position -= min_pos
+                for load in self.loads:
+                    if isinstance(load, PLLoad):
+                        load.position -= min_pos
+                    elif isinstance(load, DLLoad):
+                        load.start -= min_pos
+                        load.end -= min_pos
+                node_pos = [node.position for node in self.nodes]
+                min_pos, max_pos = min(node_pos), max(node_pos)
+
+            for load in self.loads:
+                if isinstance(load, PLLoad):
+                    if load.position < min_pos or load.position > max_pos:
+                        self.loads.remove(load)
+                elif isinstance(load, DLLoad):
+                    if load.start < min_pos or load.end > max_pos:
+                        self.loads.remove(load)
+        else:
+            self.loads.clear()
+
+
+class ProjectHolder:
+    current: Project | None = None
+    history: list[Project] = []
+    history_ix: int = -1
+
+    @classmethod
+    def save_history(cls) -> bool:
+        if cls.current:
+            cls.history = cls.history[:cls.history_ix + 1]  # remove future states
+            cls.history.append(copy.deepcopy(cls.current))
+            cls.history_ix += 1
+            return True
+        return False
+
+    @classmethod
+    def clear_history(cls):
+        cls.history.clear()
+        cls.history_ix = -1
+
+    @classmethod
+    def undo(cls) -> bool:
+        if cls.history_ix > 0:
+            cls.history_ix -= 1
+            cls.current = copy.deepcopy(cls.history[cls.history_ix])
+            return True
+        return False
+
+    @classmethod
+    def redo(cls) -> bool:
+        if cls.history_ix < len(cls.history) - 1:
+            cls.history_ix += 1
+            cls.current = copy.deepcopy(cls.history[cls.history_ix])
+            return True
+        return False
 
 
 class Section:
@@ -281,9 +345,6 @@ class Node:
 
         self.imgDims = {"radius": 5, "border": 0}
 
-        self.is_highlighted: bool = False
-        self.is_selected: bool = False
-
     def __repr__(self):
         return f"Node(position={self.position}, support={self.support})"
 
@@ -295,14 +356,6 @@ class Node:
             return True
         return False
 
-    def select(self):
-        self.is_selected = True
-        self.is_highlighted = True
-
-    def deselect(self):
-        self.is_selected = False
-        self.is_highlighted = False
-
     def to_dict(self) -> dict:
         return {
             "position": self.position,
@@ -312,8 +365,7 @@ class Node:
 
 class Load:
     def __init__(self):
-        self.is_highlighted: bool = False
-        self.is_selected: bool = False
+        ...
 
     @property
     def type(self) -> LoadType:
@@ -324,12 +376,6 @@ class Load:
 
     def check_hover(self, event: tk.Event, to_screen) -> bool:
         raise NotImplementedError("Subclass must implement check_hover()")
-
-    def select(self):
-        raise NotImplementedError("Subclass must implement select()")
-
-    def deselect(self):
-        raise NotImplementedError("Subclass must implement deselect()")
 
     def to_dict(self) -> dict:
         raise NotImplementedError("Subclass must implement to_dict()")
@@ -389,14 +435,6 @@ class PLLoad(Load):
                 return True
         return False
 
-    def select(self):
-        self.is_selected = True
-        self.is_highlighted = True
-
-    def deselect(self):
-        self.is_selected = False
-        self.is_highlighted = False
-
     def to_dict(self) -> dict:
         return {
             "type": self.type,
@@ -428,14 +466,6 @@ class DLLoad(Load):
         # pos1 = to_screen(self.start, 0)
         # pos2 = to_screen(self.end, 0)
         return False
-
-    def select(self):
-        self.is_selected = True
-        self.is_highlighted = True
-
-    def deselect(self):
-        self.is_selected = False
-        self.is_highlighted = False
 
     def to_dict(self) -> dict:
         return {

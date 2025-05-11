@@ -1,3 +1,5 @@
+import customtkinter as ctk
+from PIL import Image
 from dataclasses import dataclass
 from enum import StrEnum
 import json
@@ -61,9 +63,15 @@ class Settings:
     LANGUAGES_DIR = os.path.join(CONFIGS_DIR, "languages")
     THEMES_DIR = os.path.join(CONFIGS_DIR, "themes")
 
-    FTR_NAME = ("FTR - Ferri Tensio Ratio",
+    FTR_NAME = ("FTR - Ferri Tractus Ratio",
                 "FTR",
-                "Ferri Tensio Ratio")
+                "Ferri Tractus Ratio")
+    LANGUAGES = {"en": "English",
+                 "pt": "Português (BR)"}
+
+    BTN_SECTION_PROPERTIES_IMG = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "section.png")), size=(40, 40))
+    BTN_NODE_IMG = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "node.png")), size=(40, 40))
+    # BTN_LOAD_IMG = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "load.png")), size=(40, 40))
 
     settings_path = os.path.join(CONFIGS_DIR, "settings.json")
     language = "en"
@@ -117,6 +125,19 @@ class Theme:
     @dataclass
     class MainScreen:
         @dataclass
+        class Editor:
+            @dataclass
+            class Label:
+                text: str
+
+            @dataclass
+            class OptionMenu:
+                text: str
+                fg: str
+                button: str
+                button_hover: str
+
+        @dataclass
         class Tab:
             background: str
             text: str
@@ -155,25 +176,30 @@ class Theme:
     @dataclass
     class SettingsScreen:
         background: str
+        text: str
+        secondary: str
         titlebar: str
 
     @classmethod
     def load(cls):
-        # flerken: arrumar isso:
         try:
             theme_path = os.path.join(Settings.THEMES_DIR, f"{Settings.theme}.json")
             with open(theme_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             for key, val in data.items():
-                if isinstance(val, dict):
-                    sub_cls = getattr(cls, key, None)
-                    if sub_cls:
-                        for subkey, sub_val in val.items():
-                            setattr(sub_cls, subkey, sub_val)
-                else:
-                    setattr(cls, key, val)
+                cls.add_item(cls, key, val)
         except Exception as e:
             raise RuntimeError(f"Error loading FTR Theme: {e}")
+
+    @classmethod
+    def add_item(cls, cls_at, key_at, val_at):
+        if isinstance(val_at, dict):
+            sub_cls = getattr(cls_at, key_at, None)
+            if sub_cls:
+                for sub_key, sub_val in val_at.items():
+                    cls.add_item(sub_cls, sub_key, sub_val)
+        else:
+            setattr(cls_at, key_at, val_at)
 
 
 Theme.load()

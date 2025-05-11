@@ -6,6 +6,17 @@
 	"secondary": "#72757e",
 	"tertiary": "#2cb67d",
 	"MainScreen": {
+		"Editor": {
+			"Label": {
+				"text": "#ffffff"
+			},
+			"OptionMenu": {
+				"text": "#ffffff",
+				"fg": "#555555",
+				"button": "#444444",
+				"button_hover": "#333333"
+			}
+		},
 		"Tab": {
 			"background": "#101214",
 			"text": "#ffffff",
@@ -19,12 +30,12 @@
 			"highlight": "#7f5af0"
 		},
 		"Ribbon": {
-			"background": "#5c6773",
+			"background": "#282c34",
 			"text": "#ffffff",
 			"highlight": "#7f5af0"
 		},
 		"StatusBar": {
-			"background": "#72757e",
+			"background": "#21252b",
 			"text": "#ffffff",
 			"highlight": "#7f5af0"
 		},
@@ -39,7 +50,9 @@
 		}
 	},
 	"SettingsScreen": {
-		"background": "#000000",
+		"background": "#242424",
+		"text": "#ffffff",
+		"secondary": "#444444",
 		"titlebar": "#1a1a1a"
-	},
+	}
 }

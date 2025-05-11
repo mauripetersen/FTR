@@ -11,6 +11,7 @@ class Language:
 
     @classmethod
     def load(cls):
+        """Load the language from the file FTR/configs/languages/<lang>.json"""
         path = os.path.join(Settings.LANGUAGES_DIR, f"{Settings.language}.json")
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -21,6 +22,7 @@ class Language:
 
     @classmethod
     def get(cls, *args) -> str | None:
+        """Gets the text translated for the current language."""
         if not args:
             return None
         last = cls.translations

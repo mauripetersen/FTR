@@ -5,12 +5,17 @@
 	"save_as_project_title": "Salvar Como Projeto FTR",
 	"ftr_projects": "Projetos FTR",
 	"MainScreen": {
-		"Ribbon": {
-			"section_properties": "Propriedades da Seção",
-			"add_node": "Adicionar Node"
-		},
-		"StatusBar": {
-			"grid": "Malha"
+		"Editor": {
+			"Section": {
+				"title": "Propriedades da Seção",
+				"section_type": "Tipo de Seção"
+			},
+			"Node": {
+				"title": "Editor de Node"
+			},
+			"Load": {
+				"title": "Editor de Carga"
+			}
 		},
 		"Tab": {
 			"File": {
@@ -33,12 +38,22 @@
 				"options": "Opções",
 				"settings": "Configurações..."
 			}
+		},
+		"SideBar": {
+			"a": "a"
+		},
+		"Ribbon": {
+			"section_properties": "Propriedades da Seção",
+			"add_node": "Adicionar Node",
+			"add_load": "Adicionar Carga"
+		},
+		"StatusBar": {
+			"grid": "Malha"
 		}
 	},
 	"SettingsScreen": {
 		"title": "FTR - Configurações",
-		"btn_ok": "OK",
-		"btn_apply": "Aplicar"
+		"language": "Idioma"
 	},
 	"Error": {
 		"detect_scale": "Falha ao detectar a escala do sistema",

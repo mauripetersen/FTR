@@ -3,37 +3,43 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import ImageTk
 import math
-import copy
 
 from config import Settings, Theme
-from project import Project, Support, Node, Load, PLLoad, DLLoad
+from project import ProjectHolder, Support, Node, Load, PLLoad, DLLoad
 from gui.render import update_image
+from gui.editor import Editor
 from manager import Language
 
 __all__ = ["CADInterface"]
 
 
 class CADInterface(ctk.CTkFrame):
-    def __init__(self, app, main_screen, master_frame, project: Project):
+    def __init__(self, app, main_screen, master_frame, editor: Editor):
         super().__init__(master_frame)
         self.app = app
         self.main_screen = main_screen
-
-        self.project = project
-        self.historical: list[Project] = [copy.deepcopy(self.project)]
-        self.historical_ix: int = 0
+        self.editor = editor
 
         self.canvas = tk.Canvas(self, bg=Theme.MainScreen.CAD.background, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         self.view = View(scale_fac=1.1, ppm_0=100, P=(-5.0, 5.0))
 
+        self.selected: list[Node | Load] = []
+        self.highlighted: Node | Load | None = None
+
         self.image_cache: dict[Support | Node | Load, list[ImageTk.PhotoImage]] = {}
         self.canvas_id: dict[Support | Node | Load, int | None] = {}
         self.image_garbage: list[int] = []
 
-        self.select_rect = None
-        self.select_rect_start = None
-        self.pan_start = None
+        self._select_rect = None
+        self._select_rect_start = None
+        self._pan_start = None
+
+        self._holding_ctrl = False
+        self._holding_shift = False
+
+        self.main_screen.bind("<KeyPress>", self.on_key_press)
+        self.main_screen.bind("<KeyRelease>", self.on_key_release)
 
         self.main_screen.bind("<Control-a>", self.on_ctrl_a)
         self.main_screen.bind("<Control-y>", self.on_ctrl_y)
@@ -55,8 +61,19 @@ class CADInterface(ctk.CTkFrame):
 
         self.after(200, self.draw_canvas)
 
-    def on_escape(self, event):
-        self.deselect_all()
+    # region "Binds"
+
+    def on_key_press(self, event: tk.Event):
+        if event.keysym in ("Control_L", "Control_R"):
+            self._holding_ctrl = True
+        elif event.keysym in ("Shift_L", "Shift_R"):
+            self._holding_shift = True
+
+    def on_key_release(self, event):
+        if event.keysym in ("Control_L", "Control_R"):
+            self._holding_ctrl = False
+        elif event.keysym in ("Shift_L", "Shift_R"):
+            self._holding_shift = False
 
     def on_ctrl_a(self, event):
         self.select_all()
@@ -70,92 +87,110 @@ class CADInterface(ctk.CTkFrame):
     def on_delete(self, event):
         self.delete_selected()
 
-    def on_mouse_motion(self, event):
-        self.main_screen.FrmStatusBar.LblPos.configure(text=f"{self.to_model(event.x, event.y, 2)}")
+    def on_escape(self, event):
+        self.deselect_all()
 
-        for node in self.project.nodes:
-            if not node.is_selected:
-                node.is_highlighted = False
-        for load in self.project.loads:
-            if not load.is_selected:
-                load.is_highlighted = False
+    def on_mouse_motion(self, event):
+        self.main_screen.FrmStatusBar.LblPos.configure(text=f"Pos={self.to_model(event.x, event.y, 2)}")
 
         nearest = self.get_nearest(event)
         if nearest:
-            nearest.is_highlighted = True
+            self.highlighted = nearest
             self.canvas.configure(cursor="hand2")
         else:
+            self.highlighted = None
             self.canvas.configure(cursor="arrow")
 
         self.draw_canvas()
 
     def on_mouse_down_left(self, event):
-        flag_shift = event.state & 0x0001
-        flag_ctrl = event.state & 0x0004
-
-        if not flag_shift and not flag_ctrl:
-            self.deselect_all(flag_draw_canvas=False)
         nearest = self.get_nearest(event)
         if nearest:
-            if flag_shift:
-                nearest.deselect()
+            if self._holding_ctrl:
+                if nearest not in self.selected:
+                    self.selected.append(nearest)
+            elif self._holding_shift:
+                if nearest in self.selected:
+                    self.selected.remove(nearest)
             else:
-                nearest.select()
+                self.deselect_all(flag_draw_canvas=False)
+                self.selected.append(nearest)
+
+                if isinstance(nearest, Node):
+                    self.editor.edit_node(nearest)
+                elif isinstance(nearest, Load):
+                    self.editor.edit_load(nearest)
         else:
-            self.select_rect_start = (event.x, event.y)
+            self._select_rect_start = (event.x, event.y)
 
             # Creates the rectangle with equal initial coordinates:
-            self.select_rect = self.canvas.create_rectangle(*self.select_rect_start, *self.select_rect_start,
-                                                            outline=Theme.MainScreen.CAD.select_rect, width=1)
+            self._select_rect = self.canvas.create_rectangle(*self._select_rect_start, *self._select_rect_start,
+                                                             outline=Theme.MainScreen.CAD.select_rect, width=1)
         self.draw_canvas()
 
     def on_mouse_move_left(self, event):
         # Updates rectangle while dragging:
-        if self.select_rect:
-            self.canvas.coords(self.select_rect, *self.select_rect_start, event.x, event.y)
-            self.canvas.tag_raise(self.select_rect)  # puts the select_rect in above
+        if self._select_rect:
+            self.canvas.coords(self._select_rect, *self._select_rect_start, event.x, event.y)
+            self.canvas.tag_raise(self._select_rect)  # puts the select_rect in above
 
     def on_mouse_up_left(self, event):
-        if self.select_rect:
-            x1, y1, x2, y2 = self.canvas.coords(self.select_rect)
+        project = ProjectHolder.current
 
-            for node in self.project.nodes:
+        if self._select_rect:
+            x1, y1, x2, y2 = self.canvas.coords(self._select_rect)
+
+            elements: list[Node | Load] = []
+            for node in project.nodes:
                 px, py = self.to_screen(node.position, 0)
                 if x1 <= px <= x2 and y1 <= py <= y2:
-                    node.select()
-            for load in self.project.loads:
+                    elements.append(node)
+            for load in project.loads:
                 if isinstance(load, PLLoad):
                     px, py = self.to_screen(load.position, 0)
                     if x1 <= px <= x2 and y1 <= py <= y2:
-                        load.select()
+                        elements.append(load)
                 elif isinstance(load, DLLoad):
                     ...
 
-            self.canvas.delete(self.select_rect)  # Remove the selection rectangle (by ID)
-            self.select_rect = None
+            if not self._holding_ctrl and not self._holding_shift:
+                self.deselect_all(flag_draw_canvas=False)
+
+            for element in elements:
+                if self._holding_shift:
+                    if element in self.selected:
+                        self.selected.remove(element)
+                else:
+                    if element not in self.selected:
+                        self.selected.append(element)
+
+            self.canvas.delete(self._select_rect)  # Remove the selection rectangle (by ID)
+            self._select_rect = None
         self.draw_canvas()
 
     def on_mouse_down_middle(self, event):
         self.canvas.configure(cursor="fleur")
-        self.pan_start = (event.x, event.y)
+        self._pan_start = (event.x, event.y)
 
     def on_mouse_move_middle(self, event):
-        if self.pan_start is None:
+        if self._pan_start is None:
             return
-        dx, dy = event.x - self.pan_start[0], self.pan_start[1] - event.y
-        self.pan_start = (event.x, event.y)
+        dx, dy = event.x - self._pan_start[0], self._pan_start[1] - event.y
+        self._pan_start = (event.x, event.y)
 
         self.view.translate(dx, dy)
         self.draw_canvas()
 
     def on_mouse_up_middle(self, event):
         self.canvas.configure(cursor="arrow")
-        self.pan_start = None
+        self._pan_start = None
 
     def on_mouse_wheel(self, event):
         Mz = self.to_model(event.x, event.y)
         self.view.zoom(Mz, event.delta)
         self.draw_canvas()
+
+    # endregion
 
     def to_screen(self, x_model: float, y_model: float) -> tuple[int, int]:
         """
@@ -179,35 +214,32 @@ class CADInterface(ctk.CTkFrame):
         return x_model, y_model
 
     def get_nearest(self, event) -> Node | Load | None:
-        for node in self.project.nodes:
+        project = ProjectHolder.current
+
+        for node in project.nodes:
             if node.check_hover(event, self.to_screen):
                 return node
-        for load in self.project.loads:
+        for load in project.loads:
             if load.check_hover(event, self.to_screen):
                 return load
         return None
 
-    def get_selected(self) -> list[Node | Load]:
-        return [*[node for node in self.project.nodes if node.is_selected],
-                *[load for load in self.project.loads if load.is_selected]]
-
     def select_all(self, flag_draw_canvas=True):
-        for node in self.project.nodes:
-            node.select()
-        for load in self.project.loads:
-            load.select()
+        project = ProjectHolder.current
+        self.editor.close_editor()  # flerken: deixar isso? precisa mesmo?
+        self.selected = [*project.nodes, *project.loads]
         if flag_draw_canvas:
             self.draw_canvas()
 
     def deselect_all(self, flag_draw_canvas=True):
-        for node in self.project.nodes:
-            node.deselect()
-        for load in self.project.loads:
-            load.deselect()
+        self.editor.close_editor()
+        self.selected.clear()
         if flag_draw_canvas:
             self.draw_canvas()
 
     def delete_element(self, element: Node | Load):
+        project = ProjectHolder.current
+
         if isinstance(element, Node):
             if element.support:
                 if self.canvas_id.get(element.support):
@@ -222,7 +254,7 @@ class CADInterface(ctk.CTkFrame):
             if self.image_cache.get(element):
                 self.image_cache.pop(element)
 
-            self.project.nodes.remove(element)
+            project.nodes.remove(element)
         elif isinstance(element, Load):
             if self.canvas_id.get(element):
                 self.canvas.delete(self.canvas_id[element])
@@ -230,50 +262,42 @@ class CADInterface(ctk.CTkFrame):
             if self.image_cache.get(element):
                 self.image_cache.pop(element)
 
-            self.project.loads.remove(element)
-        self.project.modified = True
-        self.main_screen.update_title()  # flerken (verificar se farei assim mesmo)
+            project.loads.remove(element)
+        project.modified = True
+        self.main_screen.update_title()  # flerken: verificar se farei assim mesmo
 
     def delete_selected(self):
-        selected_list = self.get_selected()
-        if selected_list:
-            for selected in selected_list:
-                self.delete_element(selected)
-            self.check_integrity()
+        if self.selected:
+            for element in self.selected:
+                self.delete_element(element)
+            ProjectHolder.current.check_integrity()
+            self.update_all_images()
+            self.canvas.delete("all")
             self.draw_canvas()
-            self.save_history()
+            ProjectHolder.save_history()
 
     def undo(self):
-        if self.historical_ix > 0:
-            self.historical_ix -= 1
-            self.project = copy.deepcopy(self.historical[self.historical_ix])
-
+        if ProjectHolder.undo():
             self.canvas.delete("all")
             self.deselect_all()
             self.update_all_images()
             self.draw_canvas()
 
     def redo(self):
-        if self.historical_ix < len(self.historical) - 1:
-            self.historical_ix += 1
-            self.project = copy.deepcopy(self.historical[self.historical_ix])
-
+        if ProjectHolder.redo():
             self.canvas.delete("all")
             self.deselect_all()
             self.update_all_images()
             self.draw_canvas()
 
-    def save_history(self):
-        self.historical = self.historical[:self.historical_ix + 1]  # remove future states
-        self.historical.append(copy.deepcopy(self.project))
-        self.historical_ix += 1
-
     def update_all_images(self):
-        for node in self.project.nodes:
+        project = ProjectHolder.current
+
+        for node in project.nodes:
             self.image_cache[node] = update_image(node)
             if node.support:
                 self.image_cache[node.support] = update_image(node.support)
-        for load in self.project.loads:
+        for load in project.loads:
             self.image_cache[load] = update_image(load)
 
     def draw_element(self, element: Support | Node | Load):
@@ -289,7 +313,12 @@ class CADInterface(ctk.CTkFrame):
             if self.image_cache.get(element) is None:
                 return
             pos = self.to_screen(element.position, 0)
-            img = self.image_cache[element][1] if element.is_highlighted else self.image_cache[element][0]
+
+            if element in self.selected or element == self.highlighted:
+                img = self.image_cache[element][1]
+            else:
+                img = self.image_cache[element][0]
+
             if self.canvas_id.get(element):
                 self.canvas.delete(self.canvas_id[element])
             self.canvas_id[element] = self.canvas.create_image(*pos, anchor="c", image=img)
@@ -297,7 +326,12 @@ class CADInterface(ctk.CTkFrame):
             if self.image_cache.get(element) is None:
                 return
             pos = self.to_screen(element.position, 0)
-            img = self.image_cache[element][1] if element.is_highlighted else self.image_cache[element][0]
+
+            if element in self.selected or element == self.highlighted:
+                img = self.image_cache[element][1]
+            else:
+                img = self.image_cache[element][0]
+
             if self.canvas_id.get(element):
                 self.canvas.delete(self.canvas_id[element])
             self.canvas_id[element] = self.canvas.create_image(*pos, anchor="c", image=img)
@@ -305,11 +339,13 @@ class CADInterface(ctk.CTkFrame):
             ...
 
     def draw_canvas(self) -> bool:
-        if not self.project:
+        project = ProjectHolder.current
+
+        if not project:
             self.destroy()
         try:
-            nodes = self.project.nodes
-            loads = self.project.loads
+            nodes = project.nodes
+            loads = project.loads
 
             for g in self.image_garbage:
                 self.canvas.delete(g)
@@ -367,37 +403,8 @@ class CADInterface(ctk.CTkFrame):
             return True
         except Exception as e:
             messagebox.showerror(Settings.FTR_NAME[0], f"{Language.get('Error', 'draw_canvas')}: {e}")
-            self.project.last_error = str(e)
+            project.last_error = str(e)
             return False
-
-    def check_integrity(self):
-        node_pos = [node.position for node in self.project.nodes]
-        if node_pos:
-            min_pos, max_pos = min(node_pos), max(node_pos)
-
-            if min_pos != 0:
-                for node in self.project.nodes:
-                    node.position -= min_pos
-                for load in self.project.loads:
-                    if isinstance(load, PLLoad):
-                        load.position -= min_pos
-                    elif isinstance(load, DLLoad):
-                        load.start -= min_pos
-                        load.end -= min_pos
-                node_pos = [node.position for node in self.project.nodes]
-                min_pos, max_pos = min(node_pos), max(node_pos)
-
-            for load in self.project.loads:
-                if isinstance(load, PLLoad):
-                    if load.position < min_pos or load.position > max_pos:
-                        self.delete_element(load)
-                elif isinstance(load, DLLoad):
-                    if load.start < min_pos or load.end > max_pos:
-                        self.delete_element(load)
-            self.draw_canvas()
-        else:
-            for load in self.project.loads:
-                self.delete_element(load)
 
 
 class View:

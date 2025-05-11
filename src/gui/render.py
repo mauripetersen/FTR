@@ -1,7 +1,8 @@
 from PIL import Image, ImageDraw, ImageTk
 import math
+import os
 
-from config import Theme, SupportType
+from config import Settings, Theme, SupportType
 from project import Node, Support, Load, PLLoad, DLLoad
 from manager import FontManager
 
@@ -123,6 +124,12 @@ def generate_image(element: Node | Support | Load, clr: str) -> Image:
             dwg_Mz.line((*pa1, *pa3), fill=clr, width=width)
             img_Mz = img_Mz.rotate(angle=angle, resample=Image.Resampling.BICUBIC)
 
+            # flerken:
+            # if clr == Theme.MainScreen.CAD.loads[0]:
+            #     img_Mz = Image.open(os.path.join(Settings.IMAGES_DIR, "loads/M0.png"))
+            # elif clr == Theme.MainScreen.CAD.loads[1]:
+            #     img_Mz = Image.open(os.path.join(Settings.IMAGES_DIR, "loads/M1.png"))
+
             dwg_Mz = ImageDraw.Draw(img_Mz)
             dwg_Mz.text((Mz_r + border, 0), text=f"{element.Mz} kN.m", fill=clr, anchor="mt")
 
@@ -136,15 +143,15 @@ def generate_image(element: Node | Support | Load, clr: str) -> Image:
 
 def update_image(element: Node | Support | Load) -> list[ImageTk.PhotoImage] | None:
     if isinstance(element, Node):
-        img0 = generate_image(element, Theme.CAD.nodes[0])
-        img1 = generate_image(element, Theme.CAD.nodes[1])
+        img0 = generate_image(element, Theme.MainScreen.CAD.nodes[0])
+        img1 = generate_image(element, Theme.MainScreen.CAD.nodes[1])
         return [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
     elif isinstance(element, Support):
-        img = generate_image(element, Theme.CAD.supports)
+        img = generate_image(element, Theme.MainScreen.CAD.supports)
         return [ImageTk.PhotoImage(img)]
     elif isinstance(element, PLLoad):
-        img0 = generate_image(element, Theme.CAD.loads[0])
-        img1 = generate_image(element, Theme.CAD.loads[1])
+        img0 = generate_image(element, Theme.MainScreen.CAD.loads[0])
+        img1 = generate_image(element, Theme.MainScreen.CAD.loads[1])
         return [ImageTk.PhotoImage(img0), ImageTk.PhotoImage(img1)]
     elif isinstance(element, DLLoad):
         return None

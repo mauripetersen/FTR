@@ -3,7 +3,7 @@ import json
 
 
 def main() -> None:
-    theme_path = "../../configs/themes/DarkMode.json"
+    theme_path = "../../configs/themes/dark.json"
 
     with open(theme_path, "r") as f:
         data = json.load(f)
@@ -11,7 +11,7 @@ def main() -> None:
     result = extract_key_values(data)
 
     n = len(result)
-    dx = 500
+    dx = 800
     dy = 100
 
     wi = 2 * dx

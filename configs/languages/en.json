@@ -5,12 +5,17 @@
 	"save_as_project_title": "Save As FTR Project",
 	"ftr_projects": "FTR Projects",
 	"MainScreen": {
-		"Ribbon": {
-			"section_properties": "Section Properties",
-			"add_node": "Add Node"
-		},
-		"StatusBar": {
-			"grid": "Grid"
+		"Editor": {
+			"Section": {
+				"title": "Section Properties",
+				"section_type": "Section type"
+			},
+			"Node": {
+				"title": "Node Editor"
+			},
+			"Load": {
+				"title": "Load Editor"
+			}
 		},
 		"Tab": {
 			"File": {
@@ -33,12 +38,22 @@
 				"options": "Options",
 				"settings": "Settings..."
 			}
+		},
+		"SideBar": {
+			"a": "a"
+		},
+		"Ribbon": {
+			"section_properties": "Section Properties",
+			"add_node": "Add Node",
+			"add_load": "Add Load"
+		},
+		"StatusBar": {
+			"grid": "Grid"
 		}
 	},
 	"SettingsScreen": {
 		"title": "FTR - Settings",
-		"btn_ok": "OK",
-		"btn_apply": "Apply"
+		"language": "Language"
 	},
 	"Error": {
 		"detect_scale": "Failed to detect system scale",

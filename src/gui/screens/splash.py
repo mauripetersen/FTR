@@ -45,7 +45,6 @@ class SplashScreen(ctk.CTkToplevel):
         self.progress_val = 0
 
         self.protocol("WM_DELETE_WINDOW", self.master.destroy)
-
         self.load_progress()
 
     def load_progress(self):
