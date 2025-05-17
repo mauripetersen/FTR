@@ -69,8 +69,10 @@ class Settings:
     LANGUAGES = {"en": "English",
                  "pt": "Português (BR)"}
 
+    BTN_MATERIAL_PARAMETERS_IMG = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "material.png")), size=(40, 40))
     BTN_SECTION_PROPERTIES_IMG = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "section.png")), size=(40, 40))
     BTN_NODE_IMG = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "node.png")), size=(40, 40))
+
     # BTN_LOAD_IMG = ctk.CTkImage(Image.open(os.path.join(IMAGES_DIR, "load.png")), size=(40, 40))
 
     settings_path = os.path.join(CONFIGS_DIR, "settings.json")
@@ -123,19 +125,19 @@ class Theme:
     tertiary: str
 
     @dataclass
+    class AboutFTRScreen:
+        background: str
+        text: str
+        secondary: str
+        titlebar: str
+
+    @dataclass
     class MainScreen:
         @dataclass
         class Editor:
-            @dataclass
-            class Label:
-                text: str
-
-            @dataclass
-            class OptionMenu:
-                text: str
-                fg: str
-                button: str
-                button_hover: str
+            text: str
+            highlight: str
+            secondary: list[str]
 
         @dataclass
         class Tab:

@@ -29,7 +29,7 @@ class Tab(ctk.CTkFrame):
         self.MnuFile_toggle = self.create_dropdown_menu(
             master_button=self.BtnFile,
             options=[
-                (Language.get('MainScreen', 'Tab', 'File', 'about_FTR'), lambda: print("I love flerkens!")),
+                (Language.get('MainScreen', 'Tab', 'File', 'about_FTR'), app.open_about_ftr),
                 ("---", None),
                 ((Language.get('MainScreen', 'Tab', 'File', 'new_project'), "(Ctrl+N)"), main_screen.new_project),
                 ((Language.get('MainScreen', 'Tab', 'File', 'open_project'), "(Ctrl+O)"), main_screen.open_project),

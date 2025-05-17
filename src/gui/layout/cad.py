@@ -5,7 +5,7 @@ from PIL import ImageTk
 import math
 
 from config import Settings, Theme
-from project import ProjectHolder, Support, Node, Load, PLLoad, DLLoad
+from project import ProjectManager, Support, Node, Load, PLLoad, DLLoad
 from gui.render import update_image
 from gui.editor import Editor
 from manager import Language
@@ -14,11 +14,10 @@ __all__ = ["CADInterface"]
 
 
 class CADInterface(ctk.CTkFrame):
-    def __init__(self, app, main_screen, master_frame, editor: Editor):
+    def __init__(self, app, main_screen, master_frame):
         super().__init__(master_frame)
         self.app = app
         self.main_screen = main_screen
-        self.editor = editor
 
         self.canvas = tk.Canvas(self, bg=Theme.MainScreen.CAD.background, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
@@ -58,8 +57,7 @@ class CADInterface(ctk.CTkFrame):
         self.canvas.bind("<MouseWheel>", self.on_mouse_wheel)
 
         self.update_all_images()
-
-        self.after(200, self.draw_canvas)
+        self.after(150, self.draw_canvas)
 
     # region "Binds"
 
@@ -104,6 +102,7 @@ class CADInterface(ctk.CTkFrame):
         self.draw_canvas()
 
     def on_mouse_down_left(self, event):
+        Editor.close()
         nearest = self.get_nearest(event)
         if nearest:
             if self._holding_ctrl:
@@ -117,9 +116,9 @@ class CADInterface(ctk.CTkFrame):
                 self.selected.append(nearest)
 
                 if isinstance(nearest, Node):
-                    self.editor.edit_node(nearest)
+                    Editor.node.edit_node(nearest)
                 elif isinstance(nearest, Load):
-                    self.editor.edit_load(nearest)
+                    Editor.load.edit_load(nearest)
         else:
             self._select_rect_start = (event.x, event.y)
 
@@ -135,7 +134,7 @@ class CADInterface(ctk.CTkFrame):
             self.canvas.tag_raise(self._select_rect)  # puts the select_rect in above
 
     def on_mouse_up_left(self, event):
-        project = ProjectHolder.current
+        project = ProjectManager.current
 
         if self._select_rect:
             x1, y1, x2, y2 = self.canvas.coords(self._select_rect)
@@ -214,7 +213,7 @@ class CADInterface(ctk.CTkFrame):
         return x_model, y_model
 
     def get_nearest(self, event) -> Node | Load | None:
-        project = ProjectHolder.current
+        project = ProjectManager.current
 
         for node in project.nodes:
             if node.check_hover(event, self.to_screen):
@@ -225,20 +224,20 @@ class CADInterface(ctk.CTkFrame):
         return None
 
     def select_all(self, flag_draw_canvas=True):
-        project = ProjectHolder.current
-        self.editor.close_editor()  # flerken: deixar isso? precisa mesmo?
+        project = ProjectManager.current
+        Editor.close()
         self.selected = [*project.nodes, *project.loads]
         if flag_draw_canvas:
             self.draw_canvas()
 
     def deselect_all(self, flag_draw_canvas=True):
-        self.editor.close_editor()
+        Editor.close()
         self.selected.clear()
         if flag_draw_canvas:
             self.draw_canvas()
 
     def delete_element(self, element: Node | Load):
-        project = ProjectHolder.current
+        project = ProjectManager.current
 
         if isinstance(element, Node):
             if element.support:
@@ -270,28 +269,28 @@ class CADInterface(ctk.CTkFrame):
         if self.selected:
             for element in self.selected:
                 self.delete_element(element)
-            ProjectHolder.current.check_integrity()
+            ProjectManager.current.check_integrity()
             self.update_all_images()
             self.canvas.delete("all")
             self.draw_canvas()
-            ProjectHolder.save_history()
+            ProjectManager.save_history()
 
     def undo(self):
-        if ProjectHolder.undo():
+        if ProjectManager.undo():
             self.canvas.delete("all")
             self.deselect_all()
             self.update_all_images()
             self.draw_canvas()
 
     def redo(self):
-        if ProjectHolder.redo():
+        if ProjectManager.redo():
             self.canvas.delete("all")
             self.deselect_all()
             self.update_all_images()
             self.draw_canvas()
 
     def update_all_images(self):
-        project = ProjectHolder.current
+        project = ProjectManager.current
 
         for node in project.nodes:
             self.image_cache[node] = update_image(node)
@@ -339,7 +338,7 @@ class CADInterface(ctk.CTkFrame):
             ...
 
     def draw_canvas(self) -> bool:
-        project = ProjectHolder.current
+        project = ProjectManager.current
 
         if not project:
             self.destroy()

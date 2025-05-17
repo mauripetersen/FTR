@@ -5,17 +5,17 @@
 	"highlight": "#7f5af0",
 	"secondary": "#72757e",
 	"tertiary": "#2cb67d",
+	"AboutFTRScreen": {
+		"background": "#242424",
+		"text": "#ffffff",
+		"secondary": "#444444",
+		"titlebar": "#1a1a1a"
+	},
 	"MainScreen": {
 		"Editor": {
-			"Label": {
-				"text": "#ffffff"
-			},
-			"OptionMenu": {
-				"text": "#ffffff",
-				"fg": "#555555",
-				"button": "#444444",
-				"button_hover": "#333333"
-			}
+			"text": "#ffffff",
+			"highlight": "#7f5af0",
+			"secondary": ["#333333", "#444444", "#555555"]
 		},
 		"Tab": {
 			"background": "#101214",

@@ -4,8 +4,14 @@
 	"save_project_title": "Salvar Projeto FTR",
 	"save_as_project_title": "Salvar Como Projeto FTR",
 	"ftr_projects": "Projetos FTR",
+	"AboutFTRScreen": {
+		"title": "Sobre o FTR"
+	},
 	"MainScreen": {
 		"Editor": {
+			"Material": {
+				"title": "Material Parameters"
+			},
 			"Section": {
 				"title": "Propriedades da Seção",
 				"section_type": "Tipo de Seção"
@@ -43,6 +49,7 @@
 			"a": "a"
 		},
 		"Ribbon": {
+			"material_parameters": "Parâmetros do Material",
 			"section_properties": "Propriedades da Seção",
 			"add_node": "Adicionar Node",
 			"add_load": "Adicionar Carga"

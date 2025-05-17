@@ -8,7 +8,7 @@ import os
 from config import __version__, SectionType, LoadType, SupportType, Settings
 from manager import Language
 
-__all__ = ["Project", "ProjectHolder",
+__all__ = ["Project", "ProjectManager",
            "Section", "SectionR", "SectionI", "SectionT",
            "Node", "Support",
            "Load", "PLLoad", "DLLoad"]
@@ -56,6 +56,8 @@ class Project:
 
     def load_data(self) -> bool:
         """Load the project data."""
+        if not self.exists():
+            return False
         try:
             with open(self.path, "r") as f:
                 data = json.load(f)
@@ -102,6 +104,8 @@ class Project:
 
     def save_data(self) -> bool:
         """Saves the project data."""
+        if not self.path:
+            return False
         try:
             data = self.to_dict()
             json_str = json.dumps(data, indent=4)
@@ -164,10 +168,32 @@ class Project:
             self.loads.clear()
 
 
-class ProjectHolder:
+class ProjectManager:
     current: Project | None = None
     history: list[Project] = []
     history_ix: int = -1
+
+    @classmethod
+    def open(cls, project_path: str | None = None):
+        cls.current = Project(project_path)
+        cls.clear_history()
+        cls.current.load_data()
+        cls.save_history()
+
+    @classmethod
+    def save(cls):
+        cls.current.save_data()
+
+    @classmethod
+    def save_as(cls, project_path: str):
+        if project_path:
+            cls.current.path = project_path
+            cls.current.save_data()
+
+    @classmethod
+    def close(cls):
+        cls.current = None
+        cls.clear_history()
 
     @classmethod
     def save_history(cls) -> bool:

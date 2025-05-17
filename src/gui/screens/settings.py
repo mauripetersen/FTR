@@ -51,7 +51,7 @@ class SettingsScreen(ctk.CTkToplevel):
         self.LblLanguage.place(x=15, y=15, anchor="nw")
 
         self.OptLanguage = ctk.CTkOptionMenu(self.FrmMain,
-                                             values=[lang for lang in Settings.LANGUAGES.values()],
+                                             values=[val for val in Settings.LANGUAGES.values()],
                                              width=150,
                                              height=25,
                                              corner_radius=0,

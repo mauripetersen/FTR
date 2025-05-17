@@ -1,9 +1,6 @@
 import customtkinter as ctk
-import tkinter as tk
 
 from config import Theme
-from project import Project, Node, Load, PLLoad, DLLoad
-from gui.editor import Editor
 
 __all__ = ["SideBar"]
 
@@ -14,6 +11,3 @@ class SideBar(ctk.CTkFrame):
         self.pack_propagate(False)  # Prevents the Frame from adjusting to the content
         self.app = app
         self.main_screen = main_screen
-
-        self.current_element: Node | Load | None = None
-        self._modified = False
