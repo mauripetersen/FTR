@@ -19,8 +19,8 @@ class Project:
         self.path: str | None = path
 
         # Project Data:
-        self.elastic_modulus: float | None = None
-        self.fck: float | None = None
+        self.elastic_modulus: float = 0.0
+        self.fck: float = 0.0
         self.section: Section | None = None
         self.nodes: list[Node] = []
         self.loads: list[Load] = []

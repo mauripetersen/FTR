@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("..\..\.venv\Lib\site-packages")
+
 from PIL import Image, ImageDraw, ImageFont
 import json
 

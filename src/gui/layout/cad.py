@@ -281,6 +281,7 @@ class CADInterface(ctk.CTkFrame):
             self.deselect_all()
             self.update_all_images()
             self.draw_canvas()
+            self.main_screen.update_title()
 
     def redo(self):
         if ProjectManager.redo():
@@ -288,6 +289,7 @@ class CADInterface(ctk.CTkFrame):
             self.deselect_all()
             self.update_all_images()
             self.draw_canvas()
+            self.main_screen.update_title()
 
     def update_all_images(self):
         project = ProjectManager.current

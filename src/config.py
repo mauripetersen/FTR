@@ -132,13 +132,15 @@ class Theme:
         titlebar: str
 
     @dataclass
-    class MainScreen:
-        @dataclass
-        class Editor:
-            text: str
-            highlight: str
-            secondary: list[str]
+    class Editor:
+        text: str
+        highlight: str
+        secondary: list[str]
+        gray: list[str]
+        error: str
 
+    @dataclass
+    class MainScreen:
         @dataclass
         class Tab:
             background: str

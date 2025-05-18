@@ -7,22 +7,22 @@
 	"AboutFTRScreen": {
 		"title": "Sobre o FTR"
 	},
-	"MainScreen": {
-		"Editor": {
-			"Material": {
-				"title": "Material Parameters"
-			},
-			"Section": {
-				"title": "Propriedades da Seção",
-				"section_type": "Tipo de Seção"
-			},
-			"Node": {
-				"title": "Editor de Node"
-			},
-			"Load": {
-				"title": "Editor de Carga"
-			}
+	"Editor": {
+		"Material": {
+			"title": "Material Parameters"
 		},
+		"Section": {
+			"title": "Propriedades da Seção",
+			"section_type": "Tipo de Seção"
+		},
+		"Node": {
+			"title": "Editor de Node"
+		},
+		"Load": {
+			"title": "Editor de Carga"
+		}
+	},
+	"MainScreen": {
 		"Tab": {
 			"File": {
 				"file": "Arquivo",

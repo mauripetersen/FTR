@@ -82,7 +82,7 @@ class MainScreen(ctk.CTkToplevel):
             self.cad_interface.pack(fill="both", expand=True)
             # start Editor:
             if self.FrmRibbon and self.FrmSideBar and self.cad_interface:
-                Editor.start(self.FrmRibbon, self.FrmSideBar, self.cad_interface)
+                Editor.start(self.app, self)
             self.update_title()
             self.after(200, self.focus)
 
@@ -153,5 +153,5 @@ class MainScreen(ctk.CTkToplevel):
         self.title(title)
 
     def on_close(self):
-        self.close_project()
-        self.master.destroy()
+        if self.close_project():
+            self.master.destroy()

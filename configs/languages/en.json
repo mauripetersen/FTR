@@ -7,22 +7,22 @@
 	"AboutFTRScreen": {
 		"title": "About FTR"
 	},
-	"MainScreen": {
-		"Editor": {
-			"Material": {
-				"title": "Material Parameters"
-			},
-			"Section": {
-				"title": "Section Properties",
-				"section_type": "Section type"
-			},
-			"Node": {
-				"title": "Node Editor"
-			},
-			"Load": {
-				"title": "Load Editor"
-			}
+	"Editor": {
+		"Material": {
+			"title": "Material Parameters"
 		},
+		"Section": {
+			"title": "Section Properties",
+			"section_type": "Section type"
+		},
+		"Node": {
+			"title": "Node Editor"
+		},
+		"Load": {
+			"title": "Load Editor"
+		}
+	},
+	"MainScreen": {
 		"Tab": {
 			"File": {
 				"file": "File",

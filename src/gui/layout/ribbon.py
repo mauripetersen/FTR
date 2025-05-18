@@ -14,13 +14,13 @@ class Ribbon(ctk.CTkFrame):
         self.pack_propagate(False)  # Prevents the Frame from adjusting to the content
         self.app = app
         self.main_screen = main_screen
-
+        
         # Material Parameters:
         self.BtnMaterialParameters = ctk.CTkButton(
             self, text="", image=Settings.BTN_MATERIAL_PARAMETERS_IMG, cursor="hand2",
             fg_color="transparent", hover_color=Theme.MainScreen.Ribbon.highlight,
             corner_radius=0, width=self.winfo_height(),
-            command=lambda: Editor.material.open() if Editor.active else None
+            command=lambda: Editor.material.edit_material() if Editor.active else None
         )
         self.BtnMaterialParameters.pack(side="left", fill="y")
         CTkToolTip(self.BtnMaterialParameters, Language.get('MainScreen', 'Ribbon', 'material_parameters'))
@@ -30,7 +30,7 @@ class Ribbon(ctk.CTkFrame):
             self, text="", image=Settings.BTN_SECTION_PROPERTIES_IMG, cursor="hand2",
             fg_color="transparent", hover_color=Theme.MainScreen.Ribbon.highlight,
             corner_radius=0, width=self.winfo_height(),
-            command=lambda: Editor.section.section_properties() if Editor.active else None
+            command=lambda: Editor.section.edit_section() if Editor.active else None
         )
         self.BtnSectionProperties.pack(side="left", fill="y")
         CTkToolTip(self.BtnSectionProperties, Language.get('MainScreen', 'Ribbon', 'section_properties'))

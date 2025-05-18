@@ -11,12 +11,14 @@
 		"secondary": "#444444",
 		"titlebar": "#1a1a1a"
 	},
+	"Editor": {
+		"text": "#ffffff",
+		"highlight": "#7f5af0",
+		"secondary": ["#343638", "#72757e"],
+		"gray": ["#333333", "#444444", "#555555", "#777777"],
+		"error": "#c94f4f"
+	},
 	"MainScreen": {
-		"Editor": {
-			"text": "#ffffff",
-			"highlight": "#7f5af0",
-			"secondary": ["#333333", "#444444", "#555555"]
-		},
 		"Tab": {
 			"background": "#101214",
 			"text": "#ffffff",

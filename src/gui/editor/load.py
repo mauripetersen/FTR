@@ -7,21 +7,26 @@ __all__ = ["LoadEditor"]
 
 
 class LoadEditor:
-    def __init__(self, editor, ribbon, sidebar, cad):
-        self.editor = editor
-        self.ribbon = ribbon
-        self.sidebar = sidebar
-        self.cad = cad
+    def __init__(self, app, main_screen):
+        from gui.editor import Editor
+        self.editor = Editor
 
-        self.BtnOk: ctk.CTkButton | None = None
+        self.app = app
+        self.main_screen = main_screen
+        self.ribbon = main_screen.FrmRibbon
+        self.sidebar = main_screen.FrmSideBar
+        self.cad = main_screen.cad_interface
+
+        self.BtnFlerken: ctk.CTkButton | None = None
 
     def add_load(self):
         ...
 
     def edit_load(self, load: Load):
-        self.editor.create_area(title=Language.get('MainScreen', 'Editor', 'Load', 'title'))
+        self.editor.create_area(Language.get('Editor', 'Load', 'title'), self.on_ok)
+        self.editor.lock_ok_button()
 
-        FrmEditor: ctk.CTkFrame = self.editor.FrmEditor
+        FrmEditor = self.editor.FrmEditor
 
         if isinstance(load, PLLoad):
             ...
@@ -30,16 +35,5 @@ class LoadEditor:
         else:
             ...
 
-        FrmEditor.update_idletasks()
-        self.BtnOk = ctk.CTkButton(
-            FrmEditor, text="Ok", font=("Segoe UI", 18, "bold"), width=60, height=37, corner_radius=0,
-            text_color=Theme.MainScreen.Editor.text, fg_color=Theme.MainScreen.Editor.highlight,
-            hover_color=Theme.MainScreen.Editor.secondary[2],
-            command=self.on_ok
-        )
-        self.BtnOk.place(x=FrmEditor.winfo_width() - 20,
-                         y=FrmEditor.winfo_height() - 20,
-                         anchor="se")
-
-    def on_ok(self):
+    def on_ok(self, event=None):
         ...

@@ -25,28 +25,38 @@ class Editor:
 
     FrmTitle: ctk.CTkFrame | None = None
     FrmEditor: ctk.CTkFrame | None = None
+    BtnOk: ctk.CTkButton | None = None
 
-    active = False
+    active: bool = False
 
     @classmethod
-    def start(cls, ribbon, sidebar, cad):
-        cls.ribbon = ribbon
-        cls.sidebar = sidebar
-        cls.cad = cad
+    def start(cls, app, main_screen):
+        """
+        Starts the Editor -
+        References the needed dependencies (App, MainScreen, FrmRibbon, FrmSidebar and CADInterface).
+        Initiate the sub-editors (MaterialEditor, SectionEditor, NodeEditor and LoadEditor).
+        """
+        cls.app = app
+        cls.main_screen = main_screen
+        cls.ribbon = main_screen.FrmRibbon
+        cls.sidebar = main_screen.FrmSideBar
+        cls.cad = main_screen.cad_interface
 
-        cls.material = MaterialEditor(cls, ribbon, sidebar, cad)
-        cls.section = SectionEditor(cls, ribbon, sidebar, cad)
-        cls.node = NodeEditor(cls, ribbon, sidebar, cad)
-        cls.load = LoadEditor(cls, ribbon, sidebar, cad)
+        cls.material = MaterialEditor(app, main_screen)
+        cls.section = SectionEditor(app, main_screen)
+        cls.node = NodeEditor(app, main_screen)
+        cls.load = LoadEditor(app, main_screen)
 
         cls.active = True
 
     @classmethod
     def close(cls):
-        cls.clear_area()
+        """Just visually closes the Editor."""
+        cls.clear_area()  # for now just clear the area...
 
     @classmethod
     def stop(cls):
+        """Stops the Editor - Clear the area and empties all dependencies."""
         cls.clear_area()
 
         cls.ribbon = None
@@ -61,7 +71,7 @@ class Editor:
         cls.active = False
 
     @classmethod
-    def create_area(cls, title: str | None = None):
+    def create_area(cls, title: str | None = None, ok_command: callable = None):
         cls.clear_area()
 
         if title:
@@ -71,7 +81,7 @@ class Editor:
             lbl_title = ctk.CTkLabel(
                 cls.FrmTitle, text=title,
                 font=("Segoe UI Semibold", 18),
-                text_color=Theme.MainScreen.Editor.text
+                text_color=Theme.Editor.text
             )
             lbl_title.place(relx=0.5, y=20, anchor="c")
 
@@ -80,6 +90,17 @@ class Editor:
 
         cls.FrmEditor = ctk.CTkFrame(cls.sidebar, fg_color="transparent")
         cls.FrmEditor.pack(fill="both", expand=True)
+
+        cls.FrmEditor.update_idletasks()
+        cls.BtnOk = ctk.CTkButton(
+            cls.FrmEditor, text="Ok", font=("Segoe UI", 18, "bold"), width=60, height=37, corner_radius=0,
+            text_color=Theme.Editor.text, fg_color=Theme.Editor.highlight,
+            hover_color=Theme.Editor.secondary[1],
+            command=ok_command
+        )
+        cls.BtnOk.place(x=cls.FrmEditor.winfo_width() - 20,
+                        y=cls.FrmEditor.winfo_height() - 20,
+                        anchor="se")
 
     @classmethod
     def clear_area(cls):
@@ -92,7 +113,16 @@ class Editor:
 
         if cls.FrmEditor:
             for w in cls.FrmEditor.winfo_children():
+                w.unbind("<Return>")
                 w.destroy()
             cls.FrmEditor.pack_forget()
             cls.FrmEditor.destroy()
             cls.FrmEditor = None
+
+    @classmethod
+    def lock_ok_button(cls):
+        cls.BtnOk.configure(state='disabled', fg_color=Theme.Editor.secondary[1])
+
+    @classmethod
+    def unlock_ok_button(cls):
+        cls.BtnOk.configure(state='normal', fg_color=Theme.Editor.highlight)
