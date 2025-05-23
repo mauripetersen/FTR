@@ -22,9 +22,9 @@ class NodeEditor:
 
         self.current_node: Node | None = None
 
-        self.entries: list[dict[str, Any]] = [
+        self.parameters: list[dict[str, Any]] = [
             {
-                "name": "position",
+                "name": "Position",
                 "variable": None,
                 "entry": None,
                 "label": "Position:",
@@ -77,10 +77,9 @@ class NodeEditor:
 
         self.editor.create_area(Language.get('Editor', 'Node', 'title'), self.on_ok)
         self.editor.lock_ok_button()
-
         FrmEditor = self.editor.FrmEditor
 
-        for ix, item in enumerate(self.entries):
+        for ix, item in enumerate(self.parameters):
             ctk.CTkLabel(
                 FrmEditor, text=item["label"], font=("Segoe UI", 14),
                 text_color=Theme.Editor.text
@@ -106,7 +105,7 @@ class NodeEditor:
     def on_change(self, *args):
         has_changed = False
 
-        for item in self.entries:
+        for item in self.parameters:
             val = item["variable"].get()
             try:
                 val_float = float(val)
@@ -123,7 +122,7 @@ class NodeEditor:
             self.editor.lock_ok_button()
 
     def on_ok(self, event=None):
-        for item in self.entries:
+        for item in self.parameters:
             val = item["variable"].get()
             try:
                 val_float = float(val)

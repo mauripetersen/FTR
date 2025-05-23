@@ -39,7 +39,7 @@ class SectionEditor:
         self.canvas_img: ImageTk.PhotoImage | None = None
 
         # Rectangle:
-        self.entries_r: list[dict[str, Any]] = [
+        self.parameters_r: list[dict[str, Any]] = [
             {
                 "name": "Base",
                 "variable": None,
@@ -95,7 +95,6 @@ class SectionEditor:
     def update_area(self):
         self.editor.create_area(Language.get('Editor', 'Section', 'title'), self.on_ok)
         self.editor.lock_ok_button()
-
         FrmEditor = self.editor.FrmEditor
 
         ctk.CTkLabel(
@@ -132,7 +131,7 @@ class SectionEditor:
             self.canvas_img = ImageTk.PhotoImage(img.resize((200, 280)))
             self.canvas.create_image(0, 0, anchor="nw", image=self.canvas_img)
 
-            for ix, item in enumerate(self.entries_r):
+            for ix, item in enumerate(self.parameters_r):
                 y = 420 + ix * 30
 
                 ctk.CTkLabel(
@@ -181,7 +180,7 @@ class SectionEditor:
         has_changed = False
         
         if isinstance(self.current_section, SectionR):
-            for item in self.entries_r:
+            for item in self.parameters_r:
                 val = item["variable"].get()
                 try:
                     val_float = float(val)
@@ -207,7 +206,7 @@ class SectionEditor:
         has_wrong = False
 
         if isinstance(self.current_section, SectionR):
-            for item in self.entries_r:
+            for item in self.parameters_r:
                 val = item["variable"].get()
                 try:
                     val_float = float(val)
@@ -217,7 +216,7 @@ class SectionEditor:
             if has_wrong:
                 messagebox.showerror("Value Error", "Section properties invalid.")
             else:
-                for item in self.entries_r:
+                for item in self.parameters_r:
                     item["set"](float(item["variable"].get()))
                 ProjectManager.current.section = copy.deepcopy(self.current_section)
                 # ProjectManager.current.modified = True

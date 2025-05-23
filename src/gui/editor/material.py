@@ -13,14 +13,14 @@ class MaterialEditor:
     def __init__(self, app, main_screen):
         from gui.editor import Editor
         self.editor = Editor
-
+        
         self.app = app
         self.main_screen = main_screen
         self.ribbon = main_screen.FrmRibbon
         self.sidebar = main_screen.FrmSideBar
         self.cad = main_screen.cad_interface
 
-        self.entries: list[dict[str, Any]] = [
+        self.parameters: list[dict[str, Any]] = [
             {
                 "name": "Elastic Modulus",
                 "variable": None,
@@ -44,10 +44,9 @@ class MaterialEditor:
     def edit_material(self):
         self.editor.create_area(Language.get('Editor', 'Material', 'title'), self.on_ok)
         self.editor.lock_ok_button()
-
         FrmEditor = self.editor.FrmEditor
 
-        for ix, item in enumerate(self.entries):
+        for ix, item in enumerate(self.parameters):
             y = 30 + ix * 30
             
             ctk.CTkLabel(
@@ -75,7 +74,7 @@ class MaterialEditor:
     def on_change(self, *args):
         has_changed = False
 
-        for item in self.entries:
+        for item in self.parameters:
             val = item["variable"].get()
             try:
                 val_float = float(val)
@@ -92,7 +91,7 @@ class MaterialEditor:
             self.editor.lock_ok_button()
 
     def on_ok(self, event=None):
-        for item in self.entries:
+        for item in self.parameters:
             val = item["variable"].get()
             try:
                 val_float = float(val)

@@ -60,6 +60,7 @@ class Project:
             project_prov = Project(self.path)
             project_prov.load_data()
             return self.to_dict() != project_prov.to_dict()
+        return True
 
     def load_data(self) -> bool:
         """Load the project data."""
