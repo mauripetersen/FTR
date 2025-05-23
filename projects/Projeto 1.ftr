@@ -1,5 +1,5 @@
 {
-	"elastic_modulus": 210000,
+	"elastic_modulus": 210000.0,
 	"fck": 30.0,
 	"section": {
 		"type": "R",

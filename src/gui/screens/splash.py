@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image, ImageTk
+import math
 import os
 
 from config import Settings, Theme
@@ -36,24 +37,63 @@ class SplashScreen(ctk.CTkToplevel):
         self.canvas.create_text(420, 255, text=Settings.FTR_NAME[2], font=("Cambria", 24, "bold"), anchor="w",
                                 fill=Theme.paragraph)
         self.canvas.create_text(self.size[0] - 15, self.size[1] - 25, text="created by: Maurício Petersen Pithon",
-                                font=("Cambria", 12, "italic"), fill=Theme.tertiary, anchor="e")
+                                font=("Cambria", 13, "italic"), fill=Theme.tertiary, anchor="e")
+        self.load_id = None
 
         self.PrgLoad = ctk.CTkProgressBar(self, width=self.size[0], height=10,
                                           progress_color=Theme.highlight, corner_radius=0)
         self.PrgLoad.place(relx=0.5, y=self.size[1] - 55, anchor="center")
         self.PrgLoad.set(0)
-        self.progress_val = 0
+        self.progress = 0
+
+        self._pan_start = None
+        self._holding = {
+            "space": False,
+            "Left": False,
+            "Right": False
+        }
+
+        self.bind("<KeyPress>", self.on_key_press)
+        self.bind("<KeyRelease>", self.on_key_release)
+        self.bind("<Button-1>", self.on_mouse_down_left)
+        self.bind("<B1-Motion>", self.on_mouse_move_left)
 
         self.protocol("WM_DELETE_WINDOW", self.master.destroy)
         self.load_progress()
 
+    def on_key_press(self, event):
+        if event.keysym in ["space", "Left", "Right"]:
+            self._holding[event.keysym] = True
+
+    def on_key_release(self, event):
+        if event.keysym in ["space", "Left", "Right"]:
+            self._holding[event.keysym] = False
+
+    def on_mouse_down_left(self, event):
+        self._pan_start = event.x, event.y
+
+    def on_mouse_move_left(self, event):
+        if self._pan_start:
+            dx, dy = self.winfo_pointerx() - self._pan_start[0], self.winfo_pointery() - self._pan_start[1]
+            self.geometry(f"+{dx}+{dy}")
+
     def load_progress(self):
-        if self.progress_val < 100:
-            self.progress_val += 0.5
-            self.PrgLoad.set(self.progress_val / 100)
-            # flerken 1:
-            # self.after(5, self.load_progress)
-            # self.after(10, self.load_progress)
-            self.after(1, self.load_progress)
+        self.canvas.delete(self.load_id)
+        self.load_id = self.canvas.create_text(
+            15, self.size[1] - 25, text="Loading" + "." * min([3, math.floor(self.progress / 25)]),
+            font=("Cambria", 13, "italic"), fill=Theme.paragraph, anchor="w"
+        )
+
+        if self.progress <= 100:
+            if self._holding["space"]:
+                if self._holding["Left"]:
+                    self.progress -= 0.5
+                elif self._holding["Right"]:
+                    self.progress += 0.5
+                self.PrgLoad.set(self.progress / 100)
+            else:
+                self.progress += 0.5
+                self.PrgLoad.set(self.progress / 100)
+            self.after(1, self.load_progress)  # flerken: ajeitar o tempo depois
         else:
             self.app.start_app()

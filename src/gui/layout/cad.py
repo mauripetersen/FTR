@@ -41,9 +41,6 @@ class CADInterface(ctk.CTkFrame):
         self.main_screen.bind("<KeyRelease>", self.on_key_release)
 
         self.main_screen.bind("<Control-a>", self.on_ctrl_a)
-        self.main_screen.bind("<Control-y>", self.on_ctrl_y)
-        self.main_screen.bind("<Control-z>", self.on_ctrl_z)
-
         self.main_screen.bind("<Delete>", self.on_delete)
         self.main_screen.bind("<Escape>", self.on_escape)
 
@@ -75,12 +72,6 @@ class CADInterface(ctk.CTkFrame):
 
     def on_ctrl_a(self, event):
         self.select_all()
-
-    def on_ctrl_y(self, event):
-        self.redo()
-
-    def on_ctrl_z(self, event):
-        self.undo()
 
     def on_delete(self, event):
         self.delete_selected()
@@ -124,7 +115,7 @@ class CADInterface(ctk.CTkFrame):
 
             # Creates the rectangle with equal initial coordinates:
             self._select_rect = self.canvas.create_rectangle(*self._select_rect_start, *self._select_rect_start,
-                                                             outline=Theme.MainScreen.CAD.select_rect, width=1)
+                                                             outline=Theme.MainScreen.CAD.select_rect, width=2)
         self.draw_canvas()
 
     def on_mouse_move_left(self, event):
@@ -169,13 +160,13 @@ class CADInterface(ctk.CTkFrame):
 
     def on_mouse_down_middle(self, event):
         self.canvas.configure(cursor="fleur")
-        self._pan_start = (event.x, event.y)
+        self._pan_start = event.x, event.y
 
     def on_mouse_move_middle(self, event):
         if self._pan_start is None:
             return
         dx, dy = event.x - self._pan_start[0], self._pan_start[1] - event.y
-        self._pan_start = (event.x, event.y)
+        self._pan_start = event.x, event.y
 
         self.view.translate(dx, dy)
         self.draw_canvas()
@@ -262,7 +253,7 @@ class CADInterface(ctk.CTkFrame):
                 self.image_cache.pop(element)
 
             project.loads.remove(element)
-        project.modified = True
+        # project.modified = True
         self.main_screen.update_title()  # flerken: verificar se farei assim mesmo
 
     def delete_selected(self):

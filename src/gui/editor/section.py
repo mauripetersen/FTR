@@ -1,6 +1,9 @@
 import customtkinter as ctk
 import tkinter as tk
+from tkinter import messagebox
 from PIL import Image, ImageTk
+from typing import Any
+import copy
 import os
 
 from config import Settings, Theme, SectionType
@@ -36,6 +39,27 @@ class SectionEditor:
         self.canvas_img: ImageTk.PhotoImage | None = None
 
         # Rectangle:
+        self.entries_r: list[dict[str, Any]] = [
+            {
+                "name": "Base",
+                "variable": None,
+                "entry": None,
+                "label": "b:",
+                "unit": "cm",
+                "get": lambda: self.current_section.dims.get("b"),
+                "set": lambda v: self.current_section.dims.__setitem__("b", v)
+            },
+            {
+                "name": "Height",
+                "variable": None,
+                "entry": None,
+                "label": "h:",
+                "unit": "cm",
+                "get": lambda: self.current_section.dims.get("h"),
+                "set": lambda v: self.current_section.dims.__setitem__("h", v)
+            }
+        ]
+
         self.VarDimB: ctk.StringVar | None = None
         self.EntDimB: ctk.CTkEntry | None = None
         self.VarDimH: ctk.StringVar | None = None
@@ -74,12 +98,11 @@ class SectionEditor:
 
         FrmEditor = self.editor.FrmEditor
 
-        LblSection = ctk.CTkLabel(
+        ctk.CTkLabel(
             FrmEditor, text=Language.get('Editor', 'Section', 'section_type'),
             font=("Segoe UI", 16),
             text_color=Theme.Editor.text
-        )
-        LblSection.place(relx=0.5, y=20, anchor="n")
+        ).place(relx=0.5, y=20, anchor="n")
 
         self.OptSection = ctk.CTkOptionMenu(FrmEditor,
                                             values=[val for val in self.section_options.values()],
@@ -109,66 +132,34 @@ class SectionEditor:
             self.canvas_img = ImageTk.PhotoImage(img.resize((200, 280)))
             self.canvas.create_image(0, 0, anchor="nw", image=self.canvas_img)
 
-            LblDimB = ctk.CTkLabel(FrmEditor, text="b:", font=("Segoe UI", 14),
-                                   text_color=Theme.Editor.text)
-            LblDimB.place(x=20, y=420, anchor="w")
+            for ix, item in enumerate(self.entries_r):
+                y = 420 + ix * 30
 
-            self.VarDimB = ctk.StringVar()
-            self.VarDimB.set("0.0")
-            self.VarDimB.trace_add("write", self.on_change)
+                ctk.CTkLabel(
+                    FrmEditor, text=item.get("label"), font=("Segoe UI", 14),
+                    text_color=Theme.Editor.text
+                ).place(x=20, y=y, anchor="w")
 
-            self.EntDimB = ctk.CTkEntry(
-                FrmEditor, font=("Segoe UI", 14), border_width=0, corner_radius=0, width=80,
-                text_color=Theme.Editor.text, textvariable=self.VarDimB
-            )
-            self.EntDimB.place(x=50, y=420, anchor="w")
-            self.EntDimB.bind("<Return>", self.on_ok)
+                item["variable"] = ctk.StringVar()
+                item["variable"].set(str(item["get"]()))
+                item["variable"].trace_add("write", self.on_change)
 
-            LblDimB_unit = ctk.CTkLabel(
-                FrmEditor, text="cm", font=("Segoe UI", 14),
-                text_color=Theme.Editor.text
-            )
-            LblDimB_unit.place(x=140, y=420, anchor="w")
+                item["entry"] = ctk.CTkEntry(
+                    FrmEditor, font=("Segoe UI", 14), border_width=0, corner_radius=0, width=80,
+                    text_color=Theme.Editor.text, textvariable=item["variable"]
+                )
+                item["entry"].place(x=50, y=y, anchor="w")
+                item["entry"].bind("<Return>", self.on_ok)
 
-            LblDimH = ctk.CTkLabel(FrmEditor, text="h:", font=("Segoe UI", 14),
-                                   text_color=Theme.Editor.text)
-            LblDimH.place(x=20, y=450, anchor="w")
-
-            self.EntDimH = ctk.CTkEntry(FrmEditor, corner_radius=0, font=("Segoe UI", 14), width=80,
-                                        text_color=Theme.Editor.text)
-            self.EntDimH.place(x=40, y=450, anchor="w")
+                if item.get("unit"):
+                    ctk.CTkLabel(
+                        FrmEditor, text=item.get("unit"), font=("Segoe UI", 14),
+                        text_color=Theme.Editor.text
+                    ).place(x=140, y=y, anchor="w")
         elif isinstance(self.current_section, SectionI):
-            img = Image.open(os.path.join(Settings.IMAGES_DIR, "editor", "i_shape.png")).convert("RGBA")
-            self.canvas_img = ImageTk.PhotoImage(img.resize((200, 280)))
-            self.canvas.create_image(0, 0, anchor="nw", image=self.canvas_img)
-
-            LblDimBF = ctk.CTkLabel(FrmEditor, text="bf:", font=("Segoe UI", 14),
-                                    text_color=Theme.Editor.text)
-            LblDimBF.place(x=20, y=420, anchor="w")
-
-            self.EntDimBF = ctk.CTkEntry(FrmEditor, corner_radius=0, font=("Segoe UI", 14), width=80,
-                                         text_color=Theme.Editor.text)
-            self.EntDimBF.place(x=40, y=420, anchor="w")
-
-            LblDimD = ctk.CTkLabel(FrmEditor, text="d:", font=("Segoe UI", 14),
-                                   text_color=Theme.Editor.text)
-            LblDimD.place(x=20, y=450, anchor="w")
-
-            self.EntDimD = ctk.CTkEntry(FrmEditor, corner_radius=0, font=("Segoe UI", 14), width=80,
-                                        text_color=Theme.Editor.text)
-            self.EntDimD.place(x=40, y=450, anchor="w")
-
-            LblDimH = ctk.CTkLabel(FrmEditor, text="h:", font=("Segoe UI", 14),
-                                   text_color=Theme.Editor.text)
-            LblDimH.place(x=20, y=480, anchor="w")
-
-            self.EntDimH = ctk.CTkEntry(FrmEditor, corner_radius=0, font=("Segoe UI", 14), width=80,
-                                        text_color=Theme.Editor.text)
-            self.EntDimH.place(x=40, y=480, anchor="w")
+            ...
         elif isinstance(self.current_section, SectionT):
-            img = Image.open(os.path.join(Settings.IMAGES_DIR, "editor", "rectangle.png")).convert("RGBA")
-            self.canvas_img = ImageTk.PhotoImage(img.resize((200, 280)))
-            self.canvas.create_image(0, 0, anchor="nw", image=self.canvas_img)
+            ...
         else:
             self.canvas_img = None
 
@@ -190,15 +181,16 @@ class SectionEditor:
         has_changed = False
         
         if isinstance(self.current_section, SectionR):
-            b = self.VarDimB.get()
-            try:
-                b_float = float(b)
-                if ProjectManager.current.elastic_modulus != b_float:
-                    has_changed = True
-            except ValueError:
-                self.EntDimB.configure(fg_color=Theme.Editor.error, font=("Segoe UI", 14, "bold"))
-            else:
-                self.EntDimB.configure(fg_color=Theme.Editor.secondary[0], font=("Segoe UI", 14))
+            for item in self.entries_r:
+                val = item["variable"].get()
+                try:
+                    val_float = float(val)
+                    if item["get"]() != val_float:
+                        has_changed = True
+                except ValueError:
+                    item["entry"].configure(fg_color=Theme.Editor.error, font=("Segoe UI", 14, "bold"))
+                else:
+                    item["entry"].configure(fg_color=Theme.Editor.secondary[0], font=("Segoe UI", 14))
         elif isinstance(self.current_section, SectionI):
             ...
         elif isinstance(self.current_section, SectionT):
@@ -206,10 +198,41 @@ class SectionEditor:
         else:
             ...
 
+        if has_changed:
+            self.editor.unlock_ok_button()
+        else:
+            self.editor.lock_ok_button()
+
     def on_ok(self, event=None):
-        chosen_sec = self.OptSection.get()
-        match chosen_sec:
-            case "None":
-                ...
-            case SectionType.R:
-                ...
+        has_wrong = False
+
+        if isinstance(self.current_section, SectionR):
+            for item in self.entries_r:
+                val = item["variable"].get()
+                try:
+                    val_float = float(val)
+                except ValueError:
+                    has_wrong = True
+
+            if has_wrong:
+                messagebox.showerror("Value Error", "Section properties invalid.")
+            else:
+                for item in self.entries_r:
+                    item["set"](float(item["variable"].get()))
+                ProjectManager.current.section = copy.deepcopy(self.current_section)
+                # ProjectManager.current.modified = True
+                ProjectManager.save_history()
+
+                self.main_screen.update_title()
+                # self.cad.update_all_images()
+                # self.cad.draw_canvas()
+
+        elif isinstance(self.current_section, SectionI):
+            ...
+        elif isinstance(self.current_section, SectionT):
+            ...
+        else:
+            ...
+
+        self.editor.close()
+        self.editor.section.edit_section()

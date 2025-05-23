@@ -47,6 +47,8 @@ class MainScreen(ctk.CTkToplevel):
         self.bind("<Control-o>", self.on_ctrl_o)
         self.bind("<Control-s>", self.on_ctrl_s)
         self.bind("<Control-w>", self.on_ctrl_w)
+        self.bind("<Control-y>", self.on_ctrl_y)
+        self.bind("<Control-z>", self.on_ctrl_z)
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
@@ -61,6 +63,16 @@ class MainScreen(ctk.CTkToplevel):
 
     def on_ctrl_w(self, event):
         self.close_project()
+
+    def on_ctrl_y(self, event):
+        if self.cad_interface:
+            self.cad_interface.redo()
+        Editor.close()
+
+    def on_ctrl_z(self, event):
+        if self.cad_interface:
+            self.cad_interface.undo()
+        Editor.close()
 
     def new_project(self):
         self.open_project(flag_new=True)

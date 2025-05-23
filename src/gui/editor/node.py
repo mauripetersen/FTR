@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
+from typing import Any
 
 from config import Settings, Theme
 from project import ProjectManager, Node
@@ -21,14 +22,26 @@ class NodeEditor:
 
         self.current_node: Node | None = None
 
-        self.VarPosition: ctk.StringVar | None = None
-        self.EntPosition: ctk.CTkEntry | None = None
+        self.entries: list[dict[str, Any]] = [
+            {
+                "name": "position",
+                "variable": None,
+                "entry": None,
+                "label": "Position:",
+                "unit": "m",
+                "get": lambda: getattr(self.current_node, "position"),
+                "set": lambda v: setattr(self.current_node, "position", v)
+            }
+        ]
 
     def add_node(self):
         project = ProjectManager.current
 
         if len(project.nodes) == 0:
             project.nodes.append(Node(0.0, None))
+
+            ProjectManager.save_history()
+            self.main_screen.update_title()
             self.cad.update_all_images()
             self.cad.draw_canvas()
         else:
@@ -54,6 +67,8 @@ class NodeEditor:
             last_pos = max(node.position for node in project.nodes)
             project.nodes.append(Node(last_pos + float(span), None))
 
+            ProjectManager.save_history()
+            self.main_screen.update_title()
             self.cad.update_all_images()
             self.cad.draw_canvas()
 
@@ -65,42 +80,42 @@ class NodeEditor:
 
         FrmEditor = self.editor.FrmEditor
 
-        LblPosition = ctk.CTkLabel(
-            FrmEditor, text="Position:", font=("Segoe UI", 14),
-            text_color=Theme.Editor.text
-        )
-        LblPosition.place(x=20, y=30, anchor="w")
+        for ix, item in enumerate(self.entries):
+            ctk.CTkLabel(
+                FrmEditor, text=item["label"], font=("Segoe UI", 14),
+                text_color=Theme.Editor.text
+            ).place(x=20, y=30, anchor="w")
 
-        self.VarPosition = ctk.StringVar()
-        self.VarPosition.set(str(self.current_node.position))
-        self.VarPosition.trace_add("write", self.on_change)
+            item["variable"] = ctk.StringVar()
+            item["variable"].set(str(item["get"]()))
+            item["variable"].trace_add("write", self.on_change)
 
-        self.EntPosition = ctk.CTkEntry(
-            FrmEditor, font=("Segoe UI", 14), border_width=0, corner_radius=0, width=80,
-            text_color=Theme.Editor.text,
-            textvariable=self.VarPosition
-        )
-        self.EntPosition.place(x=80, y=30, anchor="w")
-        self.EntPosition.bind("<Return>", self.on_ok)
+            item["entry"] = ctk.CTkEntry(
+                FrmEditor, font=("Segoe UI", 14), border_width=0, corner_radius=0, width=80,
+                text_color=Theme.Editor.text,
+                textvariable=item["variable"]
+            )
+            item["entry"].place(x=80, y=30, anchor="w")
+            item["entry"].bind("<Return>", self.on_ok)
 
-        LblPosition_unit = ctk.CTkLabel(
-            FrmEditor, text="m", font=("Segoe UI", 14),
-            text_color=Theme.Editor.text
-        )
-        LblPosition_unit.place(x=170, y=30, anchor="w")
+            ctk.CTkLabel(
+                FrmEditor, text="m", font=("Segoe UI", 14),
+                text_color=Theme.Editor.text
+            ).place(x=170, y=30, anchor="w")
 
     def on_change(self, *args):
         has_changed = False
 
-        pos = self.VarPosition.get()
-        try:
-            pos_float = float(pos)
-            if self.current_node.position != pos_float:
-                has_changed = True
-        except ValueError:
-            self.EntPosition.configure(fg_color=Theme.Editor.error, font=("Segoe UI", 14, "bold"))
-        else:
-            self.EntPosition.configure(fg_color=Theme.Editor.secondary[0], font=("Segoe UI", 14))
+        for item in self.entries:
+            val = item["variable"].get()
+            try:
+                val_float = float(val)
+                if item["get"]() != val_float:
+                    has_changed = True
+            except ValueError:
+                item["entry"].configure(fg_color=Theme.Editor.error, font=("Segoe UI", 14, "bold"))
+            else:
+                item["entry"].configure(fg_color=Theme.Editor.secondary[0], font=("Segoe UI", 14))
 
         if has_changed:
             self.editor.unlock_ok_button()
@@ -108,17 +123,19 @@ class NodeEditor:
             self.editor.lock_ok_button()
 
     def on_ok(self, event=None):
-        pos = self.VarPosition.get()
+        for item in self.entries:
+            val = item["variable"].get()
+            try:
+                val_float = float(val)
+            except ValueError:
+                messagebox.showerror("Value Error", "Invalid type.")
+            else:
+                item["set"](val_float)
+                # ProjectManager.current.modified = True
+                ProjectManager.save_history()
 
-        try:
-            pos_float = float(pos)
-        except ValueError:
-            messagebox.showerror("Value Error", "Position must be a valid number.")
-        else:
-            self.current_node.position = pos_float
-            ProjectManager.current.modified = True
-            ProjectManager.save_history()
-
-            self.main_screen.update_title()
-            self.cad.update_all_images()
-            self.cad.draw_canvas()
+                self.main_screen.update_title()
+                self.cad.update_all_images()
+                self.cad.draw_canvas()
+        self.editor.close()
+        self.editor.node.edit_node(self.current_node)

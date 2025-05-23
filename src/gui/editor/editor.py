@@ -14,6 +14,9 @@ __all__ = ["Editor"]
 
 
 class Editor:
+    app = None
+    main_screen = None
+
     ribbon = None
     sidebar = None
     cad = None
@@ -38,6 +41,7 @@ class Editor:
         """
         cls.app = app
         cls.main_screen = main_screen
+
         cls.ribbon = main_screen.FrmRibbon
         cls.sidebar = main_screen.FrmSideBar
         cls.cad = main_screen.cad_interface
@@ -58,6 +62,9 @@ class Editor:
     def stop(cls):
         """Stops the Editor - Clear the area and empties all dependencies."""
         cls.clear_area()
+
+        cls.app = None
+        cls.main_screen = None
 
         cls.ribbon = None
         cls.sidebar = None

@@ -26,7 +26,7 @@ class Project:
         self.loads: list[Load] = []
         self.metadata: dict[str, str] = self.get_metadata()
 
-        self.modified: bool = False
+        # self.modified: bool = False
         self.last_error: str | None = None
 
     def __repr__(self):
@@ -53,6 +53,13 @@ class Project:
         if self.path:
             return os.path.splitext(os.path.basename(self.path))[0]
         return "Untitled"
+
+    @property
+    def modified(self) -> bool:
+        if self.path:
+            project_prov = Project(self.path)
+            project_prov.load_data()
+            return self.to_dict() != project_prov.to_dict()
 
     def load_data(self) -> bool:
         """Load the project data."""
@@ -95,7 +102,7 @@ class Project:
 
             self.metadata = data["metadata"]
 
-            self.modified = False
+            # self.modified = False
             return True
         except Exception as e:
             messagebox.showerror(Settings.FTR_NAME[0], f"{Language.get('Error', 'load_data')}: {e}")
@@ -112,7 +119,7 @@ class Project:
             json_str_with_tabs = json_str.replace("    ", "\t")
             with open(self.path, "w") as f:
                 f.write(json_str_with_tabs)
-            self.modified = False
+            # self.modified = False
 
             return True
         except Exception as e:
