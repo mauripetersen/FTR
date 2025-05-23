@@ -69,7 +69,7 @@ class Project:
             with open(self.path, "r") as f:
                 data = json.load(f)
 
-            self.elastic_modulus = data["elastic_modulus"]  # flerken: fazer verificações do E para tipo int ou None
+            self.elastic_modulus = data["elastic_modulus"]  # flerken: fazer verificações do E para tipo “int” ou "None"
             self.fck = data["fck"]  # flerken: fazer verificações do fck para tipo float ou None
 
             sec = data["section"]

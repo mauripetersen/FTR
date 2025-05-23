@@ -1,7 +1,7 @@
-import customtkinter as ctk
 from tkinter import messagebox, filedialog
+import customtkinter as ctk
 
-from config import Settings, Theme
+from config import Settings
 from gui.style import configure_TopLevel
 from gui.layout import tab, ribbon, sidebar, statusbar, cad
 from gui.editor import Editor

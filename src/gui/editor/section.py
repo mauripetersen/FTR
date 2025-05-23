@@ -64,7 +64,7 @@ class SectionEditor:
         self.EntDimB: ctk.CTkEntry | None = None
         self.VarDimH: ctk.StringVar | None = None
         self.EntDimH: ctk.CTkEntry | None = None
-
+        
         # I-shape and T-shape:
         self.EntDimBF: ctk.CTkEntry | None = None
         self.EntDimD: ctk.CTkEntry | None = None
