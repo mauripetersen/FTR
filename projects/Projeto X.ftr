@@ -1,6 +1,8 @@
 {
 	"elastic_modulus": null,
+	"cement": null,
 	"fck": null,
+	"date_j": 28,
 	"section": null,
 	"nodes": [],
 	"loads": [],

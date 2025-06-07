@@ -1,6 +1,8 @@
 {
 	"elastic_modulus": 210000.0,
+	"cement": "CPIII",
 	"fck": 30.0,
+	"date_j": 28,
 	"section": {
 		"type": "R",
 		"dims": {

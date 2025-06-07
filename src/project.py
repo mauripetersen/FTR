@@ -5,7 +5,7 @@ import math
 import copy
 import os
 
-from config import __version__, SectionType, LoadType, SupportType, Settings
+from config import __version__, CementType, SectionType, LoadType, SupportType, Settings
 from manager import Language
 
 __all__ = ["Project", "ProjectManager",
@@ -20,7 +20,10 @@ class Project:
 
         # Project Data:
         self.elastic_modulus: float = 0.0
+        self.cement: CementType | None = None
         self.fck: float = 0.0
+        self.date_j: int = 28
+
         self.section: Section | None = None
         self.nodes: list[Node] = []
         self.loads: list[Load] = []
@@ -28,25 +31,6 @@ class Project:
 
         # self.modified: bool = False
         self.last_error: str | None = None
-
-    def __repr__(self):
-        res = f"Project(\n"
-        res += f"\tname={self.name},\n"
-        res += f"\telastic_modulus={self.elastic_modulus},\n"
-        res += f"\tfck={self.fck},\n"
-        res += f"\tsection={self.section}\n"
-        res += f"\tnodes=[\n"
-        for node in self.nodes:
-            res += f"\t\t{node},\n"
-        res += f"\t],\n"
-        res += f"\tloads=[\n"
-        for load in self.loads:
-            res += f"\t\t{load},\n"
-        res += f"\t],\n"
-        res += f"\tmetadata={self.metadata}\n"
-        res += ")"
-
-        return res
 
     @property
     def name(self):
@@ -70,8 +54,16 @@ class Project:
             with open(self.path, "r") as f:
                 data = json.load(f)
 
-            self.elastic_modulus = data["elastic_modulus"]  # flerken: fazer verificações do E para tipo “int” ou "None"
-            self.fck = data["fck"]  # flerken: fazer verificações do fck para tipo float ou None
+            # flerken: fazer verificações para estas variáveis
+            self.elastic_modulus = data["elastic_modulus"]
+
+            try:
+                self.cement = CementType(data["cement"])
+            except ValueError:
+                self.cement = None
+
+            self.fck = data["fck"]
+            self.date_j = data["date_j"]
 
             sec = data["section"]
             if sec:
@@ -141,7 +133,9 @@ class Project:
     def to_dict(self) -> dict:
         return {
             "elastic_modulus": self.elastic_modulus,
+            "cement": self.cement,
             "fck": self.fck,
+            "date_j": self.date_j,
             "section": self.section.to_dict() if self.section else None,
             "nodes": [node.to_dict() for node in self.nodes],
             "loads": [load.to_dict() for load in self.loads],

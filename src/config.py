@@ -9,8 +9,16 @@ import os
 __version__ = "1.0.0"
 
 __all__ = ["__version__",
-           "SectionType", "SupportType", "LoadType",
+           "CementType", "SectionType", "SupportType", "LoadType",
            "Settings", "Theme"]
+
+
+class CementType(StrEnum):
+    CP1 = "CPI"
+    CP2 = "CPII"
+    CP3 = "CPIII"
+    CP4 = "CPIV"
+    CP5 = "CPV-ARI"
 
 
 class SectionType(StrEnum):

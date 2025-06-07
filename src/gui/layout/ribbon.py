@@ -43,7 +43,7 @@ class Ribbon(ctk.CTkFrame):
             command=lambda: Editor.node.add_node() if Editor.active else None
         )
         self.BtnAddNode.pack(side="left", fill="y")
-        CTkToolTip(self.BtnAddNode, Language.get('MainScreen', 'Ribbon', 'add_node'))
+        CTkToolTip(self.BtnAddNode, Language.get('MainScreen', 'Ribbon', 'add_node') + " (N)")
 
         # Add Load:
         self.BtnAddLoad = ctk.CTkButton(

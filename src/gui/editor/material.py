@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from typing import Any
 
-from config import Settings, Theme
+from config import Settings, Theme, CementType
 from project import ProjectManager, Load, PLLoad, DLLoad
 from manager import Language
 
@@ -19,10 +19,11 @@ class MaterialEditor:
         self.ribbon = main_screen.FrmRibbon
         self.sidebar = main_screen.FrmSideBar
         self.cad = main_screen.cad_interface
-
+        
         self.parameters: list[dict[str, Any]] = [
             {
                 "name": "Elastic Modulus",
+                "type": "float",
                 "variable": None,
                 "entry": None,
                 "label": "E:",
@@ -31,13 +32,34 @@ class MaterialEditor:
                 "set": lambda v: setattr(ProjectManager.current, "elastic_modulus", v)
             },
             {
+                "name": "Cement",
+                "type": "str",
+                "variable": None,
+                "entry": None,
+                "label": "Cement:",
+                "unit": "",
+                "get": lambda: getattr(ProjectManager.current, "cement"),
+                "set": lambda v: setattr(ProjectManager.current, "cement", v)
+            },
+            {
                 "name": "FCK",
+                "type": "float",
                 "variable": None,
                 "entry": None,
                 "label": "fck:",
                 "unit": "MPa",
                 "get": lambda: getattr(ProjectManager.current, "fck"),
                 "set": lambda v: setattr(ProjectManager.current, "fck", v)
+            },
+            {
+                "name": "J Date",
+                "type": "int",
+                "variable": None,
+                "entry": None,
+                "label": "j Date:",
+                "unit": "days",
+                "get": lambda: getattr(ProjectManager.current, "date_j"),
+                "set": lambda v: setattr(ProjectManager.current, "date_j", v)
             }
         ]
 
@@ -62,14 +84,14 @@ class MaterialEditor:
                 FrmEditor, font=("Segoe UI", 14), border_width=0, corner_radius=0, width=80,
                 text_color=Theme.Editor.text, textvariable=item["variable"]
             )
-            item["entry"].place(x=50, y=y, anchor="w")
+            item["entry"].place(x=80, y=y, anchor="w")
             item["entry"].bind("<Return>", self.on_ok)
 
             if item.get("unit"):
                 ctk.CTkLabel(
                     FrmEditor, text=item.get("unit"), font=("Segoe UI", 14),
                     text_color=Theme.Editor.text
-                ).place(x=140, y=y, anchor="w")
+                ).place(x=170, y=y, anchor="w")
 
     def on_change(self, *args):
         has_changed = False
@@ -77,8 +99,16 @@ class MaterialEditor:
         for item in self.parameters:
             val = item["variable"].get()
             try:
-                val_float = float(val)
-                if item["get"]() != val_float:
+                match item["type"]:
+                    case "int":
+                        val_converted = int(val)
+                    case "float":
+                        val_converted = float(val)
+                    case "str":
+                        val_converted = str(val)
+                    case _:
+                        val_converted = val
+                if item["get"]() != val_converted:
                     has_changed = True
             except ValueError:
                 item["entry"].configure(fg_color=Theme.Editor.error, font=("Segoe UI", 14, "bold"))
@@ -94,11 +124,19 @@ class MaterialEditor:
         for item in self.parameters:
             val = item["variable"].get()
             try:
-                val_float = float(val)
+                match item["type"]:
+                    case "int":
+                        val_converted = int(val)
+                    case "float":
+                        val_converted = float(val)
+                    case "str":
+                        val_converted = str(val)
+                    case _:
+                        val_converted = val
             except ValueError:
                 messagebox.showerror("Value Error", "Invalid type.")
             else:
-                item["set"](val_float)
+                item["set"](val_converted)
                 # ProjectManager.current.modified = True
                 ProjectManager.save_history()
 

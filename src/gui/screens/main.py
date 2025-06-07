@@ -52,6 +52,8 @@ class MainScreen(ctk.CTkToplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
+    # region "binds"
+
     def on_ctrl_n(self, event):
         self.new_project()
 
@@ -73,6 +75,8 @@ class MainScreen(ctk.CTkToplevel):
         if self.cad_interface:
             self.cad_interface.undo()
         Editor.close()
+
+    # endregion
 
     def new_project(self):
         self.open_project(flag_new=True)
