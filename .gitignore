@@ -1,10 +1,16 @@
-# Virtual Environment:
+# virtual environment:
 .venv/
 
-# Python IDE Configurations:
+# PyCharm configurations:
 /.idea/
 
-# Cache files:
+# logo creator with AutoCAD
+/logo_designer/
+
+# is not worthy...
+/tests/
+
+# cache files:
 __pycache__/
 .pytest_cache
 
