@@ -7,6 +7,7 @@ import os
 from config import Settings, Theme
 from gui.style import configure_TopLevel
 from manager import Language
+from core import prototyping
 
 __all__ = ["SplashScreen"]
 
@@ -58,12 +59,16 @@ class SplashScreen(ctk.CTkToplevel):
         self.bind("<Button-1>", self.on_mouse_down_left)
         self.bind("<B1-Motion>", self.on_mouse_move_left)
 
+        self.cont_prototyping = 0
+
         self.protocol("WM_DELETE_WINDOW", self.master.destroy)
         self.load_progress()
 
     def on_key_press(self, event):
         if event.keysym in ["space", "Left", "Right"]:
             self._holding[event.keysym] = True
+        elif event.keysym == "Escape":
+            self.cont_prototyping += 1
 
     def on_key_release(self, event):
         if event.keysym in ["space", "Left", "Right"]:
@@ -94,6 +99,11 @@ class SplashScreen(ctk.CTkToplevel):
             else:
                 self.progress += 0.5
                 self.PrgLoad.set(self.progress / 100)
-            self.after(1, self.load_progress)  # flerken: ajeitar o tempo depois
+
+            if self.cont_prototyping == 3:
+                self.master.destroy()
+                prototyping.start_prototype()
+            else:
+                self.after(10, self.load_progress)  # flerken: ajeitar o tempo depois
         else:
             self.app.start_app()
