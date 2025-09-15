@@ -11,21 +11,22 @@ def dimensionar_viga_ca(
         fyk_kNm2: float = 500_000.0,  # ex.: CA-50 -> 500 MPa -> 500.000 kN/m²
         Es_kNm2: float = 210_000_000.0,  # ~210 GPa -> 210.000.000 kN/m²
         # Parâmetros de cálculo (NBR 6118)
-        j_date: float = 28,  # data da verificação
+        j_date: int = 28,  # data da verificação
         cimento: str = "CP II",  # tipo de cimento ("CP I", "CP II", "CP III", "CP IV" e "CP V-ARI")
+        CAA: int = 2,  # Classe de Agressividade Ambiental - NBR 6118:2023 Tabela 6.1
+        cob: float | None = 3,  # cobrimento - NBR 6118:2023 Tabela 7.2
         gamma_c: float = 1.4,
         gamma_s: float = 1.15,
         gamma_f: float = 1.4,  # coeficiente de majoração das ações
         alpha_c: float = 0.85,  # fator tradicional do bloco retangular
         lambda_c: float = 0.80,  # fator de profundidade do bloco (λ_c)
-        eps_cu: float = 3.5e-3,  # deformação última do concreto
         # Cisalhamento (treliça de Mörsch)
         theta_deg: float = 45.0,  # 30–45° usual
         # Armadura de pele (regra prática)
         lim_h_pele_m: float = 0.6,  # exigir pele se h >= 0,60 m
         # Limites usuais
         rho_max: float = 0.04,  # ~4% (limite construtivo/funcional típico para vigas)
-        # flecha já calculada externamente (ex.: PyNiteFEA)
+        # flecha já calculada externamente
         flecha_imediata_m: float | None = None,  # δ_max em metros (obrigatório aqui)
         limite_flecha_L_sobre: float = 250.0,  # verifica L/250 por padrão
 ):
@@ -89,9 +90,20 @@ def dimensionar_viga_ca(
         else:
             s = .25
         beta_1 = math.exp(s * (1 - math.sqrt((28 / j_date))))
-
     fcd_kNm2 = beta_1 * fck_kNm2 / gamma_c  # kN/m²
     fyd_kNm2 = fyk_kNm2 / gamma_s  # kN/m²
+
+    # deformações
+    # εc2 = eps_c2 = deformação específica de encurtamento do concreto no início do patamar plástico
+    # εcu = eps_cu = deformação específica de encurtamento do concreto na ruptura
+    # εyd = eps_yd = deformação de escoamento do aço
+    if fck_MPa <= 50:
+        eps_c2 = 2.0e-3
+        eps_cu = 3.5e-3
+    else:
+        eps_c2 = 2.0e-3 + 0.085e-3 * (fck_MPa - 50) ** 0.53
+        eps_cu = 2.6e-3 + 35e-3 * ((90 - fck_MPa) / 100) ** 4
+    eps_yd = fyd_kNm2 / Es_kNm2
 
     # eta_c (novo, NBR 6118:2023)
     if fck_MPa <= 40:
@@ -106,7 +118,6 @@ def dimensionar_viga_ca(
     mu = Md_kNm / (sigma_cd_kNm2 * bw_m * d_m ** 2)
 
     # Limites por deformações (domínio)
-    eps_yd = fyd_kNm2 / Es_kNm2  # deformação de escoamento do aço
     xi_lim = eps_cu / (eps_cu + eps_yd)
     x_lim_m = xi_lim * d_m
     y_lim = lambda_c * xi_lim
@@ -170,7 +181,7 @@ def dimensionar_viga_ca(
     sin_alpha = 1.0
     Asw_s_min_m2pm = max(0.0, 0.2 * fctm_kNm2 * bw_m * sin_alpha / max(fywk_kNm2, 1e-12))  # [m²/m]
     Asw_s_prov_m2pm = max(Asw_s_req_m2pm, Asw_s_min_m2pm)
-    
+
     # Biela comprimida (VRd2)
     alpha_v2 = max(0.0, 1.0 - fck_MPa / 250.0)
     VRd2_kN = 0.27 * alpha_v2 * fcd_kNm2 * bw_m * d_m
@@ -191,7 +202,7 @@ def dimensionar_viga_ca(
 
     # == Verificações/avisos de viabilidade ==
     avisos: list[str] = []
-    
+
     # Flexão – domínio
     if dominio == 4:
         avisos.append(

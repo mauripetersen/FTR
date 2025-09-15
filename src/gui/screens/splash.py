@@ -7,7 +7,7 @@ import os
 from config import Settings, Theme
 from gui.style import configure_TopLevel
 from manager import Language
-from core import prototyping
+from core.prototype.main import start_prototype
 
 __all__ = ["SplashScreen"]
 
@@ -102,7 +102,7 @@ class SplashScreen(ctk.CTkToplevel):
 
             if self.cont_prototyping == 3:
                 self.master.destroy()
-                prototyping.start_prototype()
+                start_prototype()
             else:
                 self.after(10, self.load_progress)  # flerken: ajeitar o tempo depois
         else:
