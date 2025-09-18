@@ -1,4 +1,5 @@
 from core.prototype.dimensionamento import dimensionar_viga_ca
+import matplotlib.pyplot as plt
 from tkinter import filedialog
 from Pynite import FEModel3D
 import math
@@ -12,21 +13,26 @@ def start_prototype():
     # --- Geometria da Seção
     b_m = .20  # base [m]
     h_m = .60  # altura [m]
-    dp_m = .04  # distância As para bordo tracionado [m]
+    dp_m: float | None = None  # distância As para bordo tracionado [m]
+    # --- Bitolas As e Asw
+    phi_As_cm: float | None = 1.0  # bitola do As [cm]
+    phi_Asw_cm: float | None = 0.8  # bitola do Asw [cm]
     # --- Materiais
     # concreto
-    fck_MPa = 30.0  # fck [MPa]
-    Ec_MPa = 25_000  # Módulo de Elasticidade [kN/m²]
+    fck_MPa: float = 30.0  # fck [MPa]
+    Ec_MPa: float | None = None  # Módulo de Elasticidade [MPa] (ex: 25_000)
+    Gc_MPa: float | None = None  # Módulo de Cisalhamento [MPa]
     nu = 0.2  # Coeficiente de Poisson
     rho_c_kNm3 = 25  # Massa Específica [kN/m³]
     # aço
     fyk_MPa = 500.0  # fyk [MPa]
     Es_Mpa = 210_000.0  # Módulo de Elasticidade [MPa]
     # --- Parâmetros de cálculo (NBR 6118)
-    j_date: int = 28  # data da verificação
-    cimento: str = "CP II"  # tipo de cimento ("CP I", "CP II", "CP III", "CP IV" e "CP V-ARI")
-    CAA: int = 2  # Classe de Agressividade Ambiental - NBR 6118:2023 Tabela 6.1
-    cob: float | None = None  # cobrimento - NBR 6118:2023 Tabela 7.2
+    data_j: int = 28  # data da verificação
+    cimento: str = "CP II"  # tipo do cimento ("CP I", "CP II", "CP III", "CP IV" e "CP V-ARI")
+    alpha_E: float = 1.0  # fator do agregado graúdo (0.7, 0.9, 1.0 e 1.2) - NBR 6118:2023 Item 8.2.8
+    CAA: int = 2  # Classe de Agressividade Ambiental (CAA) - NBR 6118:2023 Tabela 6.1
+    cob_cm: float | None = None  # cobrimento [cm] - NBR 6118:2023 Tabela 7.2
     gamma_c: float = 1.4
     gamma_s: float = 1.15
     gamma_f: float = 1.4  # coeficiente de majoração das ações
@@ -34,15 +40,29 @@ def start_prototype():
     lambda_c: float = 0.8  # fator de profundidade do bloco (λ_c)
     # --- Cisalhamento (treliça de Mörsch)
     theta_deg: float = 45.0  # 30–45° usual
+    alpha_deg: float = 90.0  # 90° usual (estribo vertical)
     # --- Armadura de pele (regra prática)
     lim_h_pele_m: float = 0.6  # exigir pele se h > 60 cm
-    # --- Limites usuais
-    rho_max: float = 0.04  # taxa de armadura ~ 4% (limite construtivo/funcional típico para vigas)
     # --- flecha diferida
     limite_flecha_L_sobre: float = 250.0  # verifica L/250 por padrão
     # endregion
 
     # region "DADOS CALCULADOS"
+    # cobrimento - NBR 6118:2023 Tabela 7.2
+    if cob_cm is None:
+        if CAA == 1:
+            cob_cm = 2.5
+        elif CAA == 2:
+            cob_cm = 3.0
+        elif CAA == 3:
+            cob_cm = 4.0
+        elif CAA == 4:
+            cob_cm = 5.0
+        else:
+            cob_cm = 3.0
+
+    if dp_m is None:
+        dp_m = (cob_cm + phi_Asw_cm + phi_As_cm / 2) / 100
     d_m = h_m - dp_m  # distância As para bordo comprimido [m]
 
     A_m2 = b_m * h_m  # Área da seção transversal [m^2]
@@ -50,24 +70,19 @@ def start_prototype():
     Iz_m4 = b_m * (h_m ** 3) / 12  # Momento em torno do eixo z [m^4]
     J_m4 = b_m * (h_m ** 3) / 3  # Momento torsor [m^4]
 
-    Ec_kNm2 = Ec_MPa * 1000  # Módulo de Elasticidade [kN/m²]
-    Gc_kNm2 = Ec_kNm2 / 2.4  # Módulo de Cisalhamento [kN/m²]
-
-    # cobrimento - NBR 6118:2023 Tabela 7.2
-    if cob is None:
-        if CAA == 1:
-            cob = 2.5
-        elif CAA == 2:
-            cob = 3.0
-        elif CAA == 3:
-            cob = 4.0
-        elif CAA == 4:
-            cob = 5.0
+    # Módulo de Elasticidade
+    if Ec_MPa is None:
+        if fck_MPa <= 50:
+            Ec_MPa = alpha_E * 5_600 * math.sqrt(fck_MPa)
         else:
-            cob = 3.0
+            Ec_MPa = alpha_E * 21_500 * ((fck_MPa / 10) + 1.25) ** (1 / 3)
+    if Gc_MPa is None:
+        Gc_MPa = Ec_MPa / 2.4
+    Ec_kNm2 = Ec_MPa * 1e3  # Módulo de Elasticidade [kN/m²]
+    Gc_kNm2 = Gc_MPa * 1e3  # Módulo de Cisalhamento [kN/m²]
     # endregion
 
-    example = 1
+    example = 2
     print("iniciando protótipo...")
     print("exemplo:", example)
 
@@ -81,7 +96,7 @@ def start_prototype():
     # Add section properties:
     section_name = "Rectangle"
     beam.add_section(section_name, A_m2, Iy_m4, Iz_m4, J_m4)
-
+    
     # Add nodes
     if example == 1:
         beam.add_node('N1', 0, 0, 0)
@@ -93,16 +108,16 @@ def start_prototype():
         beam.add_node('N1', 0, 0, 0)
         beam.def_support('N1', *get_order_booleans(2))
 
-        beam.add_node('N2', 4, 0, 0)
+        beam.add_node('N2', 5, 0, 0)
         beam.def_support('N2', *get_order_booleans(1))
 
-        beam.add_node('N3', 9, 0, 0)
+        beam.add_node('N3', 11, 0, 0)
         beam.def_support('N3', *get_order_booleans(2))
     elif example == 3:
         beam.add_node('N1', 0, 0, 0)
         beam.def_support('N1', *get_order_booleans(1))
 
-        beam.add_node('N2', 10, 0, 0)
+        beam.add_node('N2', 6, 0, 0)
         beam.def_support('N2', *get_order_booleans(2))
 
     # Add members
@@ -112,17 +127,17 @@ def start_prototype():
     # Add loads
     if example == 1:
         beam.add_member_pt_load('M1', 'Fy', -20, 3)
-        beam.add_member_dist_load('M1', 'Fy', -10, -10, 0, 3)
-        beam.add_member_dist_load('M1', 'Fy', -12, -12, 3, 6)
+        beam.add_member_dist_load('M1', 'Fy', -15, -15, 0, 3)
+        beam.add_member_dist_load('M1', 'Fy', -18, -18, 3, 6)
     elif example == 2:
-        beam.add_member_pt_load('M1', 'Fy', -25, 2)
-        beam.add_member_dist_load('M1', 'Fy', -12, -12)
+        beam.add_member_pt_load('M1', 'Fy', -30, 2.5)
+        beam.add_member_dist_load('M1', 'Fy', -25, -25)
 
-        beam.add_member_pt_load('M2', 'Fy', -18, 2)
-        beam.add_member_dist_load('M2', 'Fy', -12, -12, 0, 2)
-        beam.add_member_dist_load('M2', 'Fy', -12, -15, 2, 5)
+        beam.add_member_pt_load('M2', 'Fy', -35, 2)
+        beam.add_member_dist_load('M2', 'Fy', -25, -25, 0, 2)
+        beam.add_member_dist_load('M2', 'Fy', -25, -35, 2, 6)
     elif example == 3:
-        beam.add_member_dist_load('M1', 'Fy', -50, -50)
+        beam.add_member_dist_load('M1', 'Fy', -100, -100)
 
     # Analyze the beam
     beam.analyze()
@@ -139,9 +154,9 @@ def start_prototype():
     print("")
     for member_name, member in beam.members.items():
         # Plot the shear, moment, and deflection diagrams
-        # member.plot_shear('Fy', n_points=10000)
-        # member.plot_moment('Mz', n_points=10000)
-        # member.plot_deflection('dy', n_points=10000)
+        member.plot_shear('Fy', n_points=10000)
+        member.plot_moment('Mz', n_points=10000)
+        member.plot_deflection('dy', n_points=10000)
 
         max_shear = member.max_shear('Fy')
         min_shear = member.min_shear('Fy')
@@ -188,10 +203,10 @@ def start_prototype():
         output_dimensionamento = dimensionar_viga_ca(
             bw_m=b_m, h_m=h_m, d_m=d_m, dp_m=dp_m, L_m=L_m,
             Vk_kN=Vk_kNm, Mk_kNm=Mk_kNm,
-            fck_kNm2=fck_MPa * 1000.0, fyk_kNm2=fyk_MPa * 1000.0, Es_kNm2=Es_Mpa * 1000.0,
-            j_date=j_date, cimento=cimento, CAA=CAA, cob=cob,
+            fck_MPa=fck_MPa, fyk_MPa=fyk_MPa, Ec_MPa=Ec_MPa, Es_MPa=Es_Mpa,
+            data_j=data_j, cimento=cimento, alpha_E=alpha_E, CAA=CAA, cob_cm=cob_cm,
             gamma_c=gamma_c, gamma_s=gamma_s, gamma_f=gamma_f, alpha_c=alpha_c, lambda_c=lambda_c,
-            theta_deg=theta_deg, lim_h_pele_m=lim_h_pele_m, rho_max=rho_max,
+            theta_deg=theta_deg, alpha_deg=alpha_deg, lim_h_pele_m=lim_h_pele_m,
             flecha_imediata_m=flecha_imediata_m, limite_flecha_L_sobre=limite_flecha_L_sobre
         )
 
@@ -203,10 +218,11 @@ def start_prototype():
             title="Choose file path to save"
         )
 
-        json_str = json.dumps(output, indent=4, ensure_ascii=False)
-        json_str_with_tabs = json_str.replace("    ", "\t")
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(json_str_with_tabs)
+        if file_path:
+            json_str = json.dumps(output, indent=4, ensure_ascii=False)
+            json_str_with_tabs = json_str.replace("    ", "\t")
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(json_str_with_tabs)
 
 
 def get_order_booleans(node_order) -> tuple[bool, bool, bool, bool, bool, bool]:

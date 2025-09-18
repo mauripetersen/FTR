@@ -6,15 +6,17 @@ def dimensionar_viga_ca(
         bw_m: float, h_m: float, d_m: float, dp_m: float, L_m: float,
         # Esforços característicos - Solicitações Internas (kN, kN·m)
         Vk_kN: float, Mk_kNm: float,
-        # Materiais (tensões em kN/m²)
-        fck_kNm2: float = 30_000.0,  # ex.: 30 MPa -> 30.000 kN/m²
-        fyk_kNm2: float = 500_000.0,  # ex.: CA-50 -> 500 MPa -> 500.000 kN/m²
-        Es_kNm2: float = 210_000_000.0,  # ~210 GPa -> 210.000.000 kN/m²
+        # Materiais
+        fck_MPa: float = 30.0,  # fck [MPa]
+        fyk_MPa: float = 500.0,  # fyk [MPa] CA-50 -> 500 MPa
+        Ec_MPa: float = 25_000.0,  # Módulo de Elasticidade do concreto [MPa] ~25 MPa
+        Es_MPa: float = 210_000.0,  # Módulo de Elasticidade do aço [MPa] ~210 GPa -> 210.000 MPa
         # Parâmetros de cálculo (NBR 6118)
-        j_date: int = 28,  # data da verificação
+        data_j: int = 28,  # data da verificação
         cimento: str = "CP II",  # tipo de cimento ("CP I", "CP II", "CP III", "CP IV" e "CP V-ARI")
+        alpha_E: float = 1.0,  # fator do agregado graúdo (0.7, 0.9, 1.0 e 1.2) - NBR 6118:2023 Item 8.2.8
         CAA: int = 2,  # Classe de Agressividade Ambiental - NBR 6118:2023 Tabela 6.1
-        cob: float | None = 3,  # cobrimento - NBR 6118:2023 Tabela 7.2
+        cob_cm: float | None = 3,  # cobrimento - NBR 6118:2023 Tabela 7.2
         gamma_c: float = 1.4,
         gamma_s: float = 1.15,
         gamma_f: float = 1.4,  # coeficiente de majoração das ações
@@ -22,12 +24,11 @@ def dimensionar_viga_ca(
         lambda_c: float = 0.80,  # fator de profundidade do bloco (λ_c)
         # Cisalhamento (treliça de Mörsch)
         theta_deg: float = 45.0,  # 30–45° usual
+        alpha_deg: float = 90.0,  # 90° usual (estribo vertical)
         # Armadura de pele (regra prática)
-        lim_h_pele_m: float = 0.6,  # exigir pele se h >= 0,60 m
-        # Limites usuais
-        rho_max: float = 0.04,  # ~4% (limite construtivo/funcional típico para vigas)
+        lim_h_pele_m: float = 0.6,  # exigir pele se h > 60 cm
         # flecha já calculada externamente
-        flecha_imediata_m: float | None = None,  # δ_max em metros (obrigatório aqui)
+        flecha_imediata_m: float | None = None,  # δ_max em metros
         limite_flecha_L_sobre: float = 250.0,  # verifica L/250 por padrão
 ):
     """
@@ -61,24 +62,21 @@ def dimensionar_viga_ca(
     Md_kNm = gamma_f * Mk_kNm
     Vd_kN = gamma_f * Vk_kN
 
-    # fctm a partir de fck
-    fck_MPa = fck_kNm2 / 1000.0
+    # --- Resistências
+    # Resistência à tração do concreto (fctm)
     if fck_MPa <= 50:
-        fctm_MPa = .3 * (fck_MPa ** (2.0 / 3.0))
+        fctm_MPa = 0.3 * (fck_MPa ** (2.0 / 3.0))
     else:
-        fcm = fck_MPa + 8.0
-        fctm_MPa = 2.12 * math.log(1.0 + fcm / 10.0)
-    fctm_kNm2 = fctm_MPa * 1000.0
-
-    fctk_inf_kNm2 = 0.7 * fctm_kNm2
-    fctk_sup_kNm2 = 1.3 * fctm_kNm2
+        fctm_MPa = 2.12 * math.log(1.0 + (fck_MPa + 8.0) / 10.0)
+    fctk_inf_MPa = 0.7 * fctm_MPa
+    fctk_sup_MPa = 1.3 * fctm_MPa
 
     # Resistência característica e de cálculo ao escoamento do aço dos estribos
-    fywk_kNm2 = fyk_kNm2
-    fywd_kNm2 = min(fywk_kNm2 / gamma_s, 435_000.0)
+    fywk_MPa = fyk_MPa
+    fywd_MPa = min(fywk_MPa / gamma_s, 435.0)
 
-    # Resistências de cálculo
-    if j_date >= 28:
+    # Resistências de cálculo ("d" = "design")
+    if data_j >= 28:
         beta_1 = 1.0
     else:
         if cimento in ["CP I", "CP II"]:
@@ -89,9 +87,21 @@ def dimensionar_viga_ca(
             s = .2
         else:
             s = .25
-        beta_1 = math.exp(s * (1 - math.sqrt((28 / j_date))))
-    fcd_kNm2 = beta_1 * fck_kNm2 / gamma_c  # kN/m²
-    fyd_kNm2 = fyk_kNm2 / gamma_s  # kN/m²
+        beta_1 = math.exp(s * (1 - math.sqrt((28 / data_j))))
+    fcd_MPa = beta_1 * fck_MPa / gamma_c
+    fyd_MPa = fyk_MPa / gamma_s
+
+    # conversões MPa -> kN/m²
+    fck_kNm2 = fck_MPa * 1e3
+    fyk_kNm2 = fyk_MPa * 1e3
+    fctm_kNm2 = fctm_MPa * 1e3
+    fctk_inf_kNm2 = fctk_inf_MPa * 1e3
+    fctk_sup_kNm2 = fctk_sup_MPa * 1e3
+    fywk_kNm2 = fywk_MPa * 1e3
+    fywd_kNm2 = fywd_MPa * 1e3
+    fcd_kNm2 = fcd_MPa * 1e3
+    fyd_kNm2 = fyd_MPa * 1e3
+    Es_kNm2 = Es_MPa * 1e3
 
     # deformações
     # εc2 = eps_c2 = deformação específica de encurtamento do concreto no início do patamar plástico
@@ -118,32 +128,37 @@ def dimensionar_viga_ca(
     mu = Md_kNm / (sigma_cd_kNm2 * bw_m * d_m ** 2)
 
     # Limites por deformações (domínio)
-    xi_lim = eps_cu / (eps_cu + eps_yd)
+    xi_lim_geom = eps_cu / (eps_cu + eps_yd)
+    if fck_MPa <= 50:
+        xi_lim_nbr = .45
+    else:
+        xi_lim_nbr = .35
+    xi_lim = min(xi_lim_geom, xi_lim_nbr)
     x_lim_m = xi_lim * d_m
-    y_lim = lambda_c * xi_lim
-    z_lim_m = d_m * (1.0 - y_lim / 2)
-    mu_lim = y_lim - (y_lim ** 2) / 2  # momento limite reduzido
+    y_lim_m = lambda_c * x_lim_m
+    z_lim_m = d_m - y_lim_m / 2
+    mu_lim = lambda_c * xi_lim * (1 - lambda_c * xi_lim / 2)  # momento limite reduzido
 
     # Cálculo de armaduras
     if mu <= mu_lim + 1e-12:
         # Armadura simples: y = 1 - sqrt(1 - 2μ)
-        base = 1.0 - 2.0 * mu
-        base = max(base, 0.0)
-        y = 1.0 - math.sqrt(base)
-        x_m = (y * d_m) / lambda_c
-        z_m = d_m * (1.0 - y / 2)
-        xi = y / lambda_c
-        As1_m2 = (alpha_c * xi * bw_m * d_m * sigma_cd_kNm2) / fyd_kNm2
+        base = max(1 - 2 * mu, 0)
+        xi = (1 / lambda_c) * (1 - math.sqrt(base))
+        x_m = xi * d_m
+        y_m = lambda_c * x_m
+        z_m = d_m - y_m / 2
+        As1_m2 = (lambda_c * xi * bw_m * d_m * sigma_cd_kNm2) / fyd_kNm2
         As2_m2 = 0.0
         tipo = "simples"
     else:
         # Armadura dupla (até y_lim + parcela excedente com aço tração/comp.)
-        delta = dp_m / d_m
-        As1_m2 = (y_lim + (mu - mu_lim) / (1 - delta)) * (bw_m * d_m * sigma_cd_kNm2 / fyd_kNm2)
-        As2_m2 = ((mu - mu_lim) * bw_m * d_m * sigma_cd_kNm2) / ((1 - delta) * fyd_kNm2)
+        xi = xi_lim
         x_m = x_lim_m
+        y_m = lambda_c * x_m
         z_m = z_lim_m
-        y = lambda_c * x_m / d_m
+        delta = dp_m / d_m
+        As1_m2 = (0.8 * xi + (mu - mu_lim) / (1 - delta)) * (bw_m * d_m * sigma_cd_kNm2 / fyd_kNm2)
+        As2_m2 = ((mu - mu_lim) * bw_m * d_m * sigma_cd_kNm2) / ((1 - delta) * fyd_kNm2)
         tipo = "dupla"
 
     # Estado de deformações no aço tracionado
@@ -165,32 +180,31 @@ def dimensionar_viga_ca(
     As1_min_m2 = max(As1_min_1, As1_min_2)
     As1_prov_m2 = max(As1_m2, As1_min_m2)  # Área de aço provida
 
-    # ARMADURA DE PELE
-    As_pele_por_face_m2 = 0.0
-    if h_m > lim_h_pele_m:
-        As_pele_por_face_m2 = 0.0010 * bw_m * h_m
-
     # ARMADURA DE CISALHAMENTO (treliça de Mörsch):
-    fctd_kNm2 = fctk_inf_kNm2 / gamma_c
-    cot_theta = 1.0  # theta = 45º
-    Vc_kN = max(0.0, 0.6 * fctd_kNm2 * bw_m * d_m)  # Parcela do concreto
-
-    # (Asw/s) necessária e mínima
+    cot_theta = 1.0  # theta = 45°
+    sin_alpha = 1.0  # alpha = 90°
+    # Força cortante atuante:
     Vsd_kN = gamma_f * Vk_kN
-    Asw_s_req_m2pm = max(0.0, (Vsd_kN - Vc_kN) / (0.9 * d_m * fywd_kNm2))  # [m²/m]
-    sin_alpha = 1.0
-    Asw_s_min_m2pm = max(0.0, 0.2 * fctm_kNm2 * bw_m * sin_alpha / max(fywk_kNm2, 1e-12))  # [m²/m]
-    Asw_s_prov_m2pm = max(Asw_s_req_m2pm, Asw_s_min_m2pm)
-
-    # Biela comprimida (VRd2)
+    # Biela comprimida (VRd2):
     alpha_v2 = max(0.0, 1.0 - fck_MPa / 250.0)
     VRd2_kN = 0.27 * alpha_v2 * fcd_kNm2 * bw_m * d_m
+    # (Asw/s) necessária e mínima:
+    fctd_kNm2 = fctk_inf_kNm2 / gamma_c
+    Vc_kN = max(0.0, 0.6 * fctd_kNm2 * bw_m * d_m)  # Parcela do concreto
+    Asw_s_req_m2pm = max(0.0, (Vsd_kN - Vc_kN) / (0.9 * d_m * fywd_kNm2))  # [m²/m]
+    Asw_s_min_m2pm = max(0.0, 0.2 * fctm_kNm2 * bw_m * sin_alpha / max(fywk_kNm2, 1e-12))  # [m²/m]
+    Asw_s_prov_m2pm = max(Asw_s_req_m2pm, Asw_s_min_m2pm)
 
     # Limites de espaçamento: s_max = min(0,6·d; 0,30 m) ou min(0,3·d; 0,20 m)
     if Vsd_kN <= 0.67 * VRd2_kN:
         s_max_m = min(0.6 * d_m, 0.30)
     else:
         s_max_m = min(0.3 * d_m, 0.20)
+
+    # ARMADURA DE PELE
+    As_pele_por_face_m2 = 0.0
+    if h_m > lim_h_pele_m:
+        As_pele_por_face_m2 = 0.0010 * bw_m * h_m
 
     # VERIFICAÇÃO DA FLECHA
     delta_xi = 2.0  # t0 = 0, t = inf
@@ -203,10 +217,22 @@ def dimensionar_viga_ca(
     # == Verificações/avisos de viabilidade ==
     avisos: list[str] = []
 
+    # Condições de dutilidade (NBR 6118:2023 - Item 14.6.4.3)
+    if fck_MPa <= 50:
+        if xi > .45:
+            avisos.append(
+                f"Linha neutra acima do limite (x/d = {xi:.4f} > 0.45): Dutilidade comprometida. "
+                "Sugestão: Aumentar bw, d, fck, reduzir Md, ou adotar armadura de compressão eficaz (dupla).")
+    else:
+        if xi > .35:
+            avisos.append(
+                f"Linha neutra acima do limite (x/d = {xi:.4f} > 0.35): Dutilidade comprometida. "
+                "Sugestão: Aumentar bw, d, fck, reduzir Md, ou adotar armadura de compressão eficaz (dupla).")
+
     # Flexão – domínio
     if dominio == 4:
         avisos.append(
-            "Flexão no domínio 4 (x > x_lim): seção está compressão-controlada. "
+            "Flexão no domínio 4 (x > x_lim): Seção está compressão-controlada. "
             "Sugestão: Aumentar bw, d, fck, reduzir Md, ou adotar armadura de compressão eficaz (dupla).")
     elif dominio == 2:
         avisos.append(
@@ -219,7 +245,8 @@ def dimensionar_viga_ca(
             "μ > μ_lim → exigiu armadura dupla; "
             "Se a parcela comprimida As' ficar elevada, reestude a seção (d, bw, fck) ou redistribua esforços.")
 
-    # Taxa máxima de armadura tracionada (limite construtivo/funcional típico)
+    # Taxa máxima de armadura tracionada (NBR 6118:2023 Item 17.3.5.2.4)
+    rho_max = .04
     rho_prov = (As1_prov_m2 + As2_m2) / (bw_m * h_m)
     if rho_prov > rho_max:
         avisos.append(
@@ -230,7 +257,7 @@ def dimensionar_viga_ca(
     if Vsd_kN > VRd2_kN + 1e-9:
         avisos.append(
             "Vsd > VRd2: ruína da biela comprimida antes de escoar os estribos! "
-            "Sugestão: Aumente d/bw, eleve fck ou reduza Vd.")
+            "Sugestão: Aumente d/bw, eleve fck ou reduza Vsd.")
 
     # Flecha ELS
     if flecha_els_m > flecha_lim_m + 1e-9:
@@ -242,53 +269,85 @@ def dimensionar_viga_ca(
     # Saída
     saida = {
         "dados": {
-            "fck_MPa": round(fck_kNm2 / 1000, 4),
-            "fyk_MPa": round(fyk_kNm2 / 1000, 4),
-            "fywk_MPa": round(fywk_kNm2 / 1000, 4),
-            "fctm_MPa": round(fctm_kNm2 / 1000, 4),
-            "fctk_inf_MPa": round(fctk_inf_kNm2 / 1000, 4),
-            "fctk_sup_MPa": round(fctk_sup_kNm2 / 1000, 4),
-            "beta_1": round(beta_1, 4),
-            "fcd_MPa": round(fcd_kNm2 / 1000, 4),
-            "fyd_MPa": round(fyd_kNm2 / 1000, 4),
-            "fywd_MPa": round(fywd_kNm2 / 1000, 4),
-            "Vd_kN": Vd_kN, "Md_kNm": Md_kNm,
+            "resistencia": {
+                "fck_MPa": round(fck_MPa, 4),
+                "fyk_MPa": round(fyk_MPa, 4),
+                "fywk_MPa": round(fywk_MPa, 4),
+                "fctm_MPa": round(fctm_MPa, 4),
+                "fctk_inf_MPa": round(fctk_inf_MPa, 4),
+                "fctk_sup_MPa": round(fctk_sup_MPa, 4),
+                "gamma_c": round(gamma_c, 4),
+                "gamma_s": round(gamma_s, 4),
+                "data_j": data_j,
+                "cimento": cimento,
+                "beta_1": round(beta_1, 4),
+                "fcd_MPa": round(fcd_MPa, 4),
+                "fyd_MPa": round(fyd_MPa, 4),
+                "fywd_MPa": round(fywd_MPa, 4)
+            },
+            "modulo_elasticidade": {
+                "alpha_E": round(alpha_E, 4),
+                "Ec_MPa": round(Ec_MPa, 4),
+                "Es_MPa": round(Es_MPa, 4)
+            },
+            "cargas": {
+                "gamma_f": round(gamma_f, 4),
+                "Vd_kN": round(Vd_kN, 4),
+                "Md_kNm": round(Md_kNm, 4)
+            },
             "alpha_c": alpha_c,
             "eta_c": round(eta_c, 4),
             "lambda_c": lambda_c,
-            "sigma_cd_kNm2": round(sigma_cd_kNm2, 4),
-            "mu": round(mu, 8),
-            "mu_lim": round(mu_lim, 8),
-            "y": round(y, 8),
-            "x_m": round(x_m, 8),
-            "z_m": round(z_m, 8)
+            "sigma_cd_MPa": round(sigma_cd_kNm2 / 1e3, 4),
+            "CAA": CAA,
+            "cob_cm": cob_cm,
+            "dp_cm": round(dp_m * 100, 8),
+            "d_cm": round(d_m * 100, 8),
+            "xi": round(xi, 6),
+            "x_cm": round(x_m * 100, 4),
+            "y_cm": round(y_m * 100, 4),
+            "z_cm": round(z_m * 100, 4),
+            "mu": round(mu, 6),
+            "mu_lim": round(mu_lim, 6)
         },
         "dimensionamento": {
-            "tipo": tipo,
-            "domínio": dominio,
             "avisos": avisos,
             "armadura": {
-                "As1_cm2": round(float(As1_m2 * 1e4), 4),
-                "As1_min_cm2": round(float(As1_min_m2 * 1e4), 4),
-                "As1_prov_cm2": round(float(As1_prov_m2 * 1e4), 4),
-                "As2_cm2": round(float(As2_m2 * 1e4), 4),
+                "tipo": tipo,
+                "domínio": dominio,
+                "longitudinal": {
+                    "As1_cm2": round(float(As1_m2 * 1e4), 4),
+                    "As1_min_cm2": round(float(As1_min_m2 * 1e4), 4),
+                    "As1_prov_cm2": round(float(As1_prov_m2 * 1e4), 4),
+                    "As2_cm2": round(float(As2_m2 * 1e4), 4)
+                },
+                "pele": {
+                    "lim_h_pele_cm": lim_h_pele_m * 100,
+                    "As_pele_por_face_cm2": round(float(As_pele_por_face_m2 * 1e4), 4)
+                },
+                "cisalhamento": {
+                    "theta_deg": theta_deg,
+                    "cot_theta": cot_theta,
+                    "alpha_deg": alpha_deg,
+                    "sin_alpha": sin_alpha,
+                    "Vsd_kN": round(Vsd_kN, 4),
+                    "alpha_v2": round(alpha_v2, 4),
+                    "VRd2_kN": round(VRd2_kN, 4),
+                    "Vc_kN": round(Vc_kN, 4),
+                    "Asw_s_req_cm2pm": round(Asw_s_req_m2pm * 1e4, 4),
+                    "Asw_s_min_cm2pm": round(Asw_s_min_m2pm * 1e4, 4),
+                    "Asw_s_prov_cm2pm": round(Asw_s_prov_m2pm * 1e4, 4),
+                    "s_max_cm": round(s_max_m * 100, 4)
+                }
             },
-            "cisalhamento": {
-                "theta_deg": theta_deg,
-                "cot_theta": cot_theta,
-                "Asw_s_req_cm2pm": round(float(Asw_s_req_m2pm) * 1e4, 4),
-                "Asw_s_min_cm2pm": round(float(Asw_s_min_m2pm) * 1e4, 4),
-                "Asw_s_prov_cm2pm": round(float(Asw_s_prov_m2pm) * 1e4, 4)},
-            "pele": {
-                "lim_h_pele_cm": lim_h_pele_m * 100,
-                "As_pele_por_face_cm2": round(float(As_pele_por_face_m2 * 1e4), 4)},
             "flecha": {
                 "flecha_imediata_cm": round(float(flecha_imediata_m) * 100, 4),
                 "alpha_f": round(float(alpha_f), 4),
                 "flecha_els_cm": round(float(flecha_els_m) * 100, 4),
                 "flecha_lim_cm": round(float(flecha_lim_m) * 100, 4),
                 "critério": f"L/{int(limite_flecha_L_sobre)}",
-                "ok?": bool(flecha_ok)}
+                "ok?": bool(flecha_ok)
+            }
         }
     }
 
