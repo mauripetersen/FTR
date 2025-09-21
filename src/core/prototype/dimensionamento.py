@@ -65,7 +65,7 @@ def dimensionar_viga_ca(
     # --- Resistências
     # Resistência à tração do concreto (fctm)
     if fck_MPa <= 50:
-        fctm_MPa = 0.3 * (fck_MPa ** (2.0 / 3.0))
+        fctm_MPa = 0.3 * fck_MPa ** (2.0 / 3.0)
     else:
         fctm_MPa = 2.12 * math.log(1.0 + (fck_MPa + 8.0) / 10.0)
     fctk_inf_MPa = 0.7 * fctm_MPa
@@ -122,18 +122,19 @@ def dimensionar_viga_ca(
         eta_c = (40 / fck_MPa) ** (1 / 3)
 
     # Tensão reduzida no concreto
-    sigma_cd_kNm2 = 0.85 * eta_c * fcd_kNm2
+    sigma_cd_kNm2 = alpha_c * eta_c * fcd_kNm2
 
     # Momento reduzido
     mu = Md_kNm / (sigma_cd_kNm2 * bw_m * d_m ** 2)
 
     # Limites por deformações (domínio)
-    xi_lim_geom = eps_cu / (eps_cu + eps_yd)
+    xi_lim_2 = eps_cu / (eps_cu + 10.0e-3)
+    xi_lim_3 = eps_cu / (eps_cu + eps_yd)
     if fck_MPa <= 50:
-        xi_lim_nbr = .45
+        xi_lim_nbr = 0.45
     else:
-        xi_lim_nbr = .35
-    xi_lim = min(xi_lim_geom, xi_lim_nbr)
+        xi_lim_nbr = 0.35
+    xi_lim = min(xi_lim_3, xi_lim_nbr)
     x_lim_m = xi_lim * d_m
     y_lim_m = lambda_c * x_lim_m
     z_lim_m = d_m - y_lim_m / 2
@@ -141,43 +142,45 @@ def dimensionar_viga_ca(
 
     # Cálculo de armaduras
     if mu <= mu_lim + 1e-12:
-        # Armadura simples: y = 1 - sqrt(1 - 2μ)
+        # Armadura simples:
         base = max(1 - 2 * mu, 0)
         xi = (1 / lambda_c) * (1 - math.sqrt(base))
-        x_m = xi * d_m
-        y_m = lambda_c * x_m
-        z_m = d_m - y_m / 2
-        As1_m2 = (lambda_c * xi * bw_m * d_m * sigma_cd_kNm2) / fyd_kNm2
+        As1_m2 = lambda_c * xi * bw_m * d_m * sigma_cd_kNm2 / fyd_kNm2
         As2_m2 = 0.0
         tipo = "simples"
     else:
-        # Armadura dupla (até y_lim + parcela excedente com aço tração/comp.)
+        # Armadura dupla:
         xi = xi_lim
-        x_m = x_lim_m
-        y_m = lambda_c * x_m
-        z_m = z_lim_m
         delta = dp_m / d_m
-        As1_m2 = (0.8 * xi + (mu - mu_lim) / (1 - delta)) * (bw_m * d_m * sigma_cd_kNm2 / fyd_kNm2)
-        As2_m2 = ((mu - mu_lim) * bw_m * d_m * sigma_cd_kNm2) / ((1 - delta) * fyd_kNm2)
+        As1_m2 = (lambda_c * xi + (mu - mu_lim) / (1 - delta)) * (bw_m * d_m * sigma_cd_kNm2 / fyd_kNm2)
+        As2_m2 = (mu - mu_lim) * bw_m * d_m * sigma_cd_kNm2 / ((1 - delta) * fyd_kNm2)
         tipo = "dupla"
 
-    # Estado de deformações no aço tracionado
-    eps_s_trac = eps_cu * (d_m - x_m) / max(x_m, 1e-12)
+    x_m = xi * d_m
+    y_m = lambda_c * x_m
+    z_m = d_m - y_m / 2
+
+    # alongamento do aço
+    eps_s = eps_cu * (d_m - x_m) / max(x_m, 1e-12)
+    # print("eps_c2: ", eps_c2 * 1000)
+    # print("eps_cu: ", eps_cu * 1000)
+    # print("eps_yd: ", eps_yd * 1000)
+    # print("eps_s: ", eps_s * 1000)
 
     # Classificação de domínio (simplificada)
-    if x_m <= x_lim_m and eps_s_trac >= eps_yd:
-        dominio = 3
-    elif x_m < x_lim_m and eps_s_trac < eps_yd:
-        dominio = 2
+    if xi <= xi_lim_2:
+        dominio = 2  # falha no alongamento do aço
+    elif xi <= xi_lim_3:
+        dominio = 3  # falha no encurtamento do concreto com aço escoado
     else:
-        dominio = 4  # x > x_lim → domínio 4 (compressão)
+        dominio = 4  # falha no encurtamento do concreto sem aço escoado (PROIBIDO! ruína súbita)
 
     # Armadura mínima longitudinal
     W_0 = (bw_m * (h_m ** 2)) / 6
-    M_d_min = 0.8 * W_0 * fctk_sup_kNm2
-    As1_min_1 = M_d_min / (z_m * fyd_kNm2)
-    As1_min_2 = .0015 * bw_m * d_m
-    As1_min_m2 = max(As1_min_1, As1_min_2)
+    M_d_min_kNm = 0.8 * W_0 * fctk_sup_kNm2
+    As1_min_1_m2 = M_d_min_kNm / (z_m * fyd_kNm2)
+    As1_min_2_m2 = .0015 * bw_m * d_m
+    As1_min_m2 = max(As1_min_1_m2, As1_min_2_m2)
     As1_prov_m2 = max(As1_m2, As1_min_m2)  # Área de aço provida
 
     # ARMADURA DE CISALHAMENTO (treliça de Mörsch):
@@ -202,9 +205,10 @@ def dimensionar_viga_ca(
         s_max_m = min(0.3 * d_m, 0.20)
 
     # ARMADURA DE PELE
-    As_pele_por_face_m2 = 0.0
     if h_m > lim_h_pele_m:
-        As_pele_por_face_m2 = 0.0010 * bw_m * h_m
+        As_pele_por_face_m2 = 0.001 * bw_m * h_m
+    else:
+        As_pele_por_face_m2 = 0.0
 
     # VERIFICAÇÃO DA FLECHA
     delta_xi = 2.0  # t0 = 0, t = inf
@@ -212,7 +216,7 @@ def dimensionar_viga_ca(
     alpha_f = delta_xi / (1 + 50 * rho_linha)
     flecha_els_m = alpha_f * flecha_imediata_m
     flecha_lim_m = L_m / limite_flecha_L_sobre
-    flecha_ok = (flecha_els_m <= flecha_lim_m)
+    flecha_ok = (flecha_els_m <= flecha_lim_m + 1e-12)
 
     # == Verificações/avisos de viabilidade ==
     avisos: list[str] = []
@@ -230,20 +234,22 @@ def dimensionar_viga_ca(
                 "Sugestão: Aumentar bw, d, fck, reduzir Md, ou adotar armadura de compressão eficaz (dupla).")
 
     # Flexão – domínio
-    if dominio == 4:
+    if dominio == 2:
         avisos.append(
-            "Flexão no domínio 4 (x > x_lim): Seção está compressão-controlada. "
-            "Sugestão: Aumentar bw, d, fck, reduzir Md, ou adotar armadura de compressão eficaz (dupla).")
-    elif dominio == 2:
-        avisos.append(
-            "Flexão no domínio 2 (aço não escoa): verifique ductilidade/abrangência de fissuração. "
+            "Flexão no domínio 2 (x <= x_lim_2): "
+            "Falha no alongamento do aço; "
             "Sugestão: Aumentar alavanca interna (z) ou reduzir taxa de armadura para entrar no domínio 3.")
+    elif dominio == 4:
+        avisos.append(
+            "Flexão no domínio 4 (x > x_lim_3): "
+            "Falha no encurtamento do concreto SEM escoar o aço. "
+            "Sugestão: Aumentar bw, d, fck, reduzir Md, ou adotar armadura de compressão eficaz (dupla).")
 
     # Flexão – momento acima do limite de seção simples
     if mu > mu_lim + 1e-9:
         avisos.append(
-            "μ > μ_lim → exigiu armadura dupla; "
-            "Se a parcela comprimida As' ficar elevada, reestude a seção (d, bw, fck) ou redistribua esforços.")
+            "μ > μ_lim: exigiu armadura dupla.")
+            # "Se a parcela comprimida As' ficar elevada, reestude a seção (d, bw, fck) ou redistribua esforços.")
 
     # Taxa máxima de armadura tracionada (NBR 6118:2023 Item 17.3.5.2.4)
     rho_max = .04
@@ -295,15 +301,19 @@ def dimensionar_viga_ca(
                 "Vd_kN": round(Vd_kN, 4),
                 "Md_kNm": round(Md_kNm, 4)
             },
-            "alpha_c": alpha_c,
+            "alpha_c": round(alpha_c, 4),
             "eta_c": round(eta_c, 4),
-            "lambda_c": lambda_c,
+            "lambda_c": round(lambda_c, 4),
             "sigma_cd_MPa": round(sigma_cd_kNm2 / 1e3, 4),
             "CAA": CAA,
             "cob_cm": cob_cm,
-            "dp_cm": round(dp_m * 100, 8),
-            "d_cm": round(d_m * 100, 8),
-            "xi": round(xi, 6),
+            "dp_cm": round(dp_m * 100, 4),
+            "d_cm": round(d_m * 100, 4),
+            "xi_lim_2": round(xi_lim_2, 4),
+            "xi_lim_3": round(xi_lim_3, 4),
+            "xi_lim_nbr": round(xi_lim_nbr, 4),
+            "xi_lim": round(xi_lim, 4),
+            "xi": round(xi, 4),
             "x_cm": round(x_m * 100, 4),
             "y_cm": round(y_m * 100, 4),
             "z_cm": round(z_m * 100, 4),
