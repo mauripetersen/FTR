@@ -8,8 +8,7 @@ __all__ = ["start_prototype"]
 
 
 def start_prototype():
-
-    for fck_MPa in range(30, 91, 10):
+    for fck_MPa in range(20, 91, 10):
         # region "DADOS DE ENTRADA"
         # --- Geometria da Seção
         b_m = .20  # base [m]
@@ -95,8 +94,8 @@ def start_prototype():
         # endregion
 
         example = 1
-        print("iniciando protótipo...")
-        print("exemplo:", example)
+        # print("iniciando protótipo...")
+        # print("exemplo:", example)
 
         # Create a new finite element model
         beam = FEModel3D()
@@ -167,7 +166,7 @@ def start_prototype():
         #     print("Mz:", round(node.RxnMZ["Combo 1"], 4), 'kN.m')
         #     print("")
 
-        print("")
+        # print("")
         for member_name, member in beam.members.items():
             # Plot the shear, moment, and deflection diagrams
             # member.plot_shear('Fy', n_points=10000)
@@ -225,7 +224,7 @@ def start_prototype():
                     flecha_imediata_m=flecha_imediata_m, limite_flecha_L_sobre=limite_flecha_L_sobre
                 )
                 output_pos = {**output_isostatica, **output_dimensionamento_pos}
-                
+
                 # print(f"{output_pos['dados']['xi']}\t"
                 #       f"{output_pos['dados']['mu']}\t"
                 #       f"{output_pos['dados']['mu_lim']}\t"
@@ -234,17 +233,21 @@ def start_prototype():
                 #       f"{output_pos['dimensionamento']['armadura']['cisalhamento']['Asw_s_prov_cm2pm']}\t"
                 #       f"{output_pos['dimensionamento']['flecha']['flecha_els_cm']}")
 
-                file_path_pos = filedialog.asksaveasfilename(
-                    initialfile=f"ex{example}_{member_name}_pos_fck{fck_MPa}",
-                    defaultextension=".json",
-                    filetypes=[("Json file", "*.json")],
-                    title="Choose file path to save (POSITIVE)"
-                )
-                if file_path_pos:
-                    json_str = json.dumps(output_pos, indent=4, ensure_ascii=False)
-                    json_str_with_tabs = json_str.replace("    ", "\t")
-                    with open(file_path_pos, "w", encoding="utf-8") as f:
-                        f.write(json_str_with_tabs)
+                print(f"{fck_MPa}\t"
+                      f"{output_pos['dimensionamento']['flecha']['flecha_imediata_cm']}\t"
+                      f"{output_pos['dimensionamento']['flecha']['flecha_els_cm']}")
+
+                # file_path_pos = filedialog.asksaveasfilename(
+                #     initialfile=f"ex{example}_{member_name}_pos_fck{fck_MPa}",
+                #     defaultextension=".json",
+                #     filetypes=[("Json file", "*.json")],
+                #     title="Choose file path to save (POSITIVE)"
+                # )
+                # if file_path_pos:
+                #     json_str = json.dumps(output_pos, indent=4, ensure_ascii=False)
+                #     json_str_with_tabs = json_str.replace("    ", "\t")
+                #     with open(file_path_pos, "w", encoding="utf-8") as f:
+                #         f.write(json_str_with_tabs)
 
             if Mk_neg_kNm > 1e-9:
                 output_dimensionamento_neg = dimensionar_viga_ca(
